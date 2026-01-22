@@ -18,8 +18,11 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'username',
         'email',
         'password',
+        'is_admin',
+        'profile_picture',
     ];
 
     /**
@@ -42,6 +45,36 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
+    }
+
+    /**
+     * Check if user is admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->is_admin === true;
+    }
+
+    public function getRoleDisplayAttribute()
+    {
+        return $this->is_admin ? 'Administrator' : 'User';
+    }
+
+    /**
+     * Get user activities
+     */
+    public function activities()
+    {
+        return $this->hasMany(UserActivity::class);
+    }
+
+    /**
+     * Get user meetings
+     */
+    public function meetings()
+    {
+        return $this->hasMany(Meeting::class);
     }
 }
