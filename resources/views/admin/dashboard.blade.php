@@ -10,10 +10,16 @@
                         <h2 class="text-xl font-bold text-gray-900 dark:text-white">
                             {{ __('Admin Dashboard') }}
                         </h2>
-                        <p class="text-gray-600 dark:text-gray-300 mt-1 flex items-center">
+                        <p class="mt-1 flex items-center">
                             <i class="fas fa-user-shield text-primary mr-2"></i>
-                            Welcome back, <span class="font-semibold ml-1 text-gray-900 dark:text-white">{{ Auth::user()->name }}</span>
+                            <span class="text-gray-600 dark:text-gray-300">
+                                Welcome back,
+                            </span>
+                            <span class="font-semibold ml-1 text-gray-900 dark:text-white">
+                                {{ Auth::user()->name }}
+                            </span>
                         </p>
+
                     </div>
                 </div>
             </div>

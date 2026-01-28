@@ -4,7 +4,7 @@
         <div class="flex justify-between h-20">
             <!-- Logo - Left Side -->
             <div class="flex items-center">
-                <a href="{{ auth()->user()->isAdmin() ? route('admin.dashboard') : route('dashboard') }}" class="flex items-center space-x-3">
+                <a href="{{route('dashboard') }}" class="flex items-center space-x-3">
                     <i class="fas fa-video text-primary text-3xl"></i>
                     <span class="text-2xl font-bold text-gray-800 dark:text-white">SummarAIze</span>
                 </a>

@@ -5,10 +5,16 @@
                 <h2 class="text-3xl font-bold text-gray-800 dark:text-white">
                     {{ __('My Dashboard') }}
                 </h2>
-                <p class="text-gray-600 dark:text-gray-300 mt-1 flex items-center">
-                    <i class="fas fa-user-circle text-primary mr-2"></i>
-                    Welcome back, <span class="font-semibold ml-1 dark:text-white">{{ Auth::user()->name }}</span>
+                <p class="mt-1 flex items-center">
+                    <i class="fas fa-user-shield text-primary mr-2"></i>
+                    <span class="text-gray-600 dark:text-gray-300">
+                        Welcome back,
+                    </span>
+                    <span class="font-semibold ml-1 text-gray-600 dark:text-white">
+                        {{ Auth::user()->name }}
+                    </span>
                 </p>
+
             </div>
             <div class="flex items-center space-x-4">
                 <div class="px-4 py-2 bg-blue-50 dark:bg-gray-700 rounded-lg">
