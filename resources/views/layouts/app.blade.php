@@ -166,7 +166,7 @@
                             
                             <!-- Copyright -->
                             <div class="hidden md:block text-sm text-gray-500 dark:text-gray-400">
-                                © {{ date('Y') }} SummarAIze
+                                © {{ date('Y') }} Project SummarAIze
                             </div>
                         </div>
                         

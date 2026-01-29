@@ -22,7 +22,7 @@
                         <i class="fas fa-calendar-alt mr-2"></i>{{ now()->format('F j, Y') }}
                     </span>
                 </div>
-                <a href="#" 
+                <a href="{{ route('meetings.create') }}" 
                    class="px-4 py-2 bg-primary hover:bg-blue-600 text-white font-medium rounded-lg transition duration-200 flex items-center">
                     <i class="fas fa-plus mr-2"></i> New Meeting
                 </a>
@@ -106,7 +106,7 @@
                 </h3>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <a href="3" 
+                    <a href="{{ route('meetings.create') }}" 
                        class="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl p-5 border border-gray-200 dark:border-gray-700 hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
                         <div class="text-center">
                             <div class="p-4 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white inline-block mb-4 group-hover:shadow-lg">
@@ -117,7 +117,7 @@
                         </div>
                     </a>
                     
-                    <a href="3" 
+                    <a href="{{ route('meetings.create') }}" 
                        class="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl p-5 border border-gray-200 dark:border-gray-700 hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
                         <div class="text-center">
                             <div class="p-4 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white inline-block mb-4 group-hover:shadow-lg">
@@ -128,7 +128,7 @@
                         </div>
                     </a>
                     
-                    <a href="#" 
+                    <a href="{{ route('meetings.index') }}" 
                        class="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl p-5 border border-gray-200 dark:border-gray-700 hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
                         <div class="text-center">
                             <div class="p-4 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 text-white inline-block mb-4 group-hover:shadow-lg">
@@ -139,7 +139,7 @@
                         </div>
                     </a>
                     
-                    <a href="#" 
+                    <a href="{{ route('exports.index') }}" 
                        class="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl p-5 border border-gray-200 dark:border-gray-700 hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
                         <div class="text-center">
                             <div class="p-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white inline-block mb-4 group-hover:shadow-lg">

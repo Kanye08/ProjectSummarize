@@ -34,5 +34,11 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'openai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+    ],
+    'assemblyai' => [
+        'api_key' => env('ASSEMBLYAI_API_KEY'),
+    ],
 
 ];
