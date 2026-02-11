@@ -16,19 +16,19 @@ class ProcessAudioTranscription implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $timeout = 600; // 10 minutes
+    public $timeout = 900; 
     public $tries = 3;
-    public $backoff = 60; // Wait 60 seconds between retries
+    public $backoff = 60; 
 
     public function __construct(public Meeting $meeting)
     {
     }
 
     // FOR ASSEMBLYAI TRANSCRIPTION SERVICE
-    public function handle(AssemblyAITranscriptionService $service) 
+    public function handle(AssemblyAITranscriptionService $service)
     {
         try {
-            Log::info("=== Starting transcription job for meeting {$this->meeting->id} ===");
+            Log::info("=== Starting AssemblyAI transcription for meeting {$this->meeting->id} ===");
             
             if (!$this->meeting->exists) {
                 Log::error("Meeting {$this->meeting->id} no longer exists");
@@ -40,9 +40,12 @@ class ProcessAudioTranscription implements ShouldQueue
             }
 
             $this->meeting->update(['processing_status' => 'transcribing']);
+            Log::info("Updated status to transcribing");
 
-            // Transcribe audio
+            // Transcribe audio using AssemblyAI
             $result = $service->transcribe($this->meeting->audio_file_path);
+            
+            Log::info("Creating transcript record...");
 
             // Create transcript record
             $transcript = $this->meeting->transcript()->create([
@@ -54,6 +57,7 @@ class ProcessAudioTranscription implements ShouldQueue
 
             Log::info("Transcript created with ID: {$transcript->id}");
 
+            // Update meeting duration if not set
             if (!$this->meeting->duration && isset($result['duration'])) {
                 $this->meeting->update(['duration' => (int)$result['duration']]);
             }
@@ -61,12 +65,14 @@ class ProcessAudioTranscription implements ShouldQueue
             $this->meeting->update(['processing_status' => 'transcribed']);
             Log::info("=== Transcription completed for meeting {$this->meeting->id} ===");
 
-            // Chain next job
+            // Chain next job (summary generation)
+            Log::info("Dispatching summary generation job");
             \App\Jobs\GenerateMeetingSummary::dispatch($this->meeting);
 
         } catch (\Exception $e) {
             Log::error("=== Transcription failed for meeting {$this->meeting->id} ===");
             Log::error("Error: " . $e->getMessage());
+            Log::error("File: " . $e->getFile() . " Line: " . $e->getLine());
             
             $this->meeting->update([
                 'processing_status' => 'failed',
@@ -79,6 +85,9 @@ class ProcessAudioTranscription implements ShouldQueue
 
     public function failed(\Throwable $exception)
     {
+        Log::error("Job permanently failed for meeting {$this->meeting->id}");
+        Log::error("Exception: " . $exception->getMessage());
+        
         $this->meeting->update([
             'processing_status' => 'failed',
             'error_message' => 'Transcription failed: ' . $exception->getMessage(),
