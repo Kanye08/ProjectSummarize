@@ -57,14 +57,23 @@ class AssemblyAITranscriptionService
 
     private function uploadFile($filePath)
     {
-        Log::info("Uploading file to AssemblyAI...");
-        
+        Log::info("Uploading file to AssemblyAI (raw bytes)...");
+
+        // AssemblyAI expects raw audio bytes with content-type application/octet-stream
+        $fileContents = file_get_contents($filePath);
+
+        if ($fileContents === false) {
+            throw new \Exception('Unable to read audio file for upload');
+        }
+
         $response = Http::withHeaders([
-            'authorization' => $this->apiKey,
-        ])->attach(
-            'file', 
-            file_get_contents($filePath), 
-            basename($filePath)
+            'authorization'  => $this->apiKey,
+            'content-type'   => 'application/octet-stream',
+            // Transfer-Encoding: chunked is added automatically by most HTTP clients when streaming;
+            // Laravel will handle this when sending the raw body.
+        ])->withBody(
+            $fileContents,
+            'application/octet-stream'
         )->post($this->baseUrl . '/upload');
 
         if ($response->failed()) {

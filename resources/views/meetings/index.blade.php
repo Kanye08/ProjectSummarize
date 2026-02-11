@@ -58,8 +58,18 @@
                                 </p>
 
                                 @if($meeting->description)
-                                    <p class="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                                    <p class="text-sm text-gray-600 dark:text-gray-300 mb-2 line-clamp-2">
                                         {{ $meeting->description }}
+                                    </p>
+                                @endif
+
+                                @if($meeting->processing_status === 'completed' && $meeting->summary)
+                                    <p class="text-xs text-gray-700 dark:text-gray-200 italic mb-4 line-clamp-3">
+                                        {{ $meeting->summary->brief_summary ?: Str::limit($meeting->summary->summary_text, 160) }}
+                                    </p>
+                                @else
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">
+                                        {{ ucfirst($meeting->processing_status) }}&nbsp;– transcription and summary will appear once processing is complete.
                                     </p>
                                 @endif
 
