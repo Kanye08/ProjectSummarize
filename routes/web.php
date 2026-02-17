@@ -26,6 +26,8 @@ Route::get('/', function () {
     });
 
     // Meetings
+    Route::get('/meetings/record', [MeetingController::class, 'record'])->name('meetings.record');
+    Route::post('/meetings/record/save', [MeetingController::class, 'saveRecording'])->name('meetings.record.save');
     Route::resource('meetings', MeetingController::class);
     
     // Transcripts

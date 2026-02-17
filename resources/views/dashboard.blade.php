@@ -106,7 +106,7 @@
                 </h3>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <a href="{{ route('meetings.create') }}" 
+                    <a href="{{ route('meetings.record') }}" 
                        class="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl p-5 border border-gray-200 dark:border-gray-700 hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
                         <div class="text-center">
                             <div class="p-4 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white inline-block mb-4 group-hover:shadow-lg">

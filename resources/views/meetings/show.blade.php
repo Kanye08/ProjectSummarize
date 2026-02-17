@@ -20,19 +20,29 @@
         </div>
     </x-slot>
 
+    {{-- ── PHP variables passed to JS safely ─────────────────────────────── --}}
+    @php
+        $summaryText    = $meeting->summary?->summary_text    ?? '';
+        $briefSummary   = $meeting->summary?->brief_summary   ?? '';
+        $actionPoints   = $meeting->summary?->action_points   ?? [];
+        $keyDecisions   = $meeting->summary?->key_decisions   ?? [];
+        $audioUrl       = $meeting->audio_url                 ?? '';
+    @endphp
+
     <div class="py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Status Alert -->
-            @if($meeting->processing_status !== 'completed')
+
+            {{-- ── Processing banner ─────────────────────────────────────── --}}
+            @if(!in_array($meeting->processing_status, ['completed', 'failed']))
                 <div class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 mb-6 animate-pulse">
                     <div class="flex items-center">
                         <i class="fas fa-spinner fa-spin text-yellow-600 dark:text-yellow-400 mr-3"></i>
                         <div>
                             <p class="font-semibold text-yellow-800 dark:text-yellow-300">Processing in Progress</p>
                             <p class="text-sm text-yellow-700 dark:text-yellow-400">
-                                Status: <strong>{{ ucfirst($meeting->processing_status) }}</strong>. 
+                                Status: <strong>{{ ucfirst($meeting->processing_status) }}</strong>.
                                 @if($meeting->processing_status === 'transcribing')
-                                    We're transcribing your audio. This usually takes 2-5 minutes.
+                                    We're transcribing your audio. This usually takes 2–5 minutes.
                                 @elseif($meeting->processing_status === 'summarizing')
                                     We're generating your summary and insights.
                                 @else
@@ -50,128 +60,156 @@
                         <i class="fas fa-exclamation-circle text-red-600 dark:text-red-400 mr-3"></i>
                         <div>
                             <p class="font-semibold text-red-800 dark:text-red-300">Processing Failed</p>
-                            <p class="text-sm text-red-700 dark:text-red-400">{{ $meeting->error_message }}</p>
+                            <p class="text-sm text-red-700 dark:text-red-400">{{ $meeting->error_message ?? 'An unknown error occurred.' }}</p>
                         </div>
                     </div>
                 </div>
             @endif
 
-            <!-- Main Content Grid -->
+            {{-- ── Success flash ─────────────────────────────────────────── --}}
+            @if(session('success'))
+                <div class="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-lg p-4 mb-6">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle text-green-600 dark:text-green-400 mr-3"></i>
+                        <p class="text-green-800 dark:text-green-300">{{ session('success') }}</p>
+                    </div>
+                </div>
+            @endif
+
+            {{-- ── Main grid ─────────────────────────────────────────────── --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <!-- Left Column - Audio Player & Transcript (8 cols) -->
+
+                {{-- ── LEFT: Audio player + Transcript/Summary tabs ───────── --}}
                 <div class="lg:col-span-8 space-y-6">
-                    <!-- Audio Player with Sync -->
+
+                    {{-- Audio Player --}}
                     @if($meeting->audio_file_path)
                         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
                             <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center">
                                 <i class="fas fa-play-circle text-blue-500 mr-3"></i>Audio Player
                             </h3>
-                            
-                            <div id="waveform" class="mb-4"></div>
-                            
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="flex items-center gap-4">
-                                    <button id="playPauseBtn" class="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition transform hover:scale-105 active:scale-95">
-                                        <i class="fas fa-play"></i>
-                                    </button>
-                                    <span id="currentTime" class="text-sm text-gray-600 dark:text-gray-400">0:00</span>
-                                    <span class="text-sm text-gray-600 dark:text-gray-400">/</span>
-                                    <span id="duration" class="text-sm text-gray-600 dark:text-gray-400">{{ $meeting->formatted_duration }}</span>
-                                </div>
-                                
-                                <div class="flex items-center gap-3">
-                                    <label for="playbackRate" class="text-sm text-gray-600 dark:text-gray-400">Speed:</label>
-                                    <select id="playbackRate" class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                        <option value="0.5">0.5x</option>
-                                        <option value="0.75">0.75x</option>
-                                        <option value="1" selected>1x</option>
-                                        <option value="1.25">1.25x</option>
-                                        <option value="1.5">1.5x</option>
-                                        <option value="2">2x</option>
-                                    </select>
-                                </div>
+
+                            {{-- Loading state --}}
+                            <div id="loadingState" class="text-center py-6 text-gray-500 dark:text-gray-400">
+                                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                <p class="text-sm">Loading audio…</p>
                             </div>
 
-                            <div class="flex items-center gap-2">
-                                <i class="fas fa-volume-up text-gray-600 dark:text-gray-400"></i>
-                                <input type="range" id="volumeControl" min="0" max="100" value="100" class="flex-1 accent-blue-600">
+                            <div id="waveform" class="mb-4 hidden"></div>
+
+                            <div id="audioControls" class="hidden">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center gap-4">
+                                        <button id="playPauseBtn"
+                                                class="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition transform hover:scale-105 active:scale-95 flex items-center justify-center">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                        <span id="currentTime" class="text-sm font-mono text-gray-600 dark:text-gray-400">0:00</span>
+                                        <span class="text-sm text-gray-400">/</span>
+                                        <span id="duration" class="text-sm font-mono text-gray-600 dark:text-gray-400">{{ $meeting->formatted_duration }}</span>
+                                    </div>
+
+                                    <div class="flex items-center gap-3">
+                                        <label for="playbackRate" class="text-sm text-gray-600 dark:text-gray-400">Speed:</label>
+                                        <select id="playbackRate"
+                                                class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-blue-500">
+                                            <option value="0.5">0.5x</option>
+                                            <option value="0.75">0.75x</option>
+                                            <option value="1" selected>1x</option>
+                                            <option value="1.25">1.25x</option>
+                                            <option value="1.5">1.5x</option>
+                                            <option value="2">2x</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-volume-down text-gray-500 dark:text-gray-400"></i>
+                                    <input type="range" id="volumeControl" min="0" max="100" value="100"
+                                           class="flex-1 accent-blue-600">
+                                    <i class="fas fa-volume-up text-gray-500 dark:text-gray-400"></i>
+                                </div>
                             </div>
                         </div>
                     @endif
 
-                    <!-- Transcript / Summary Tabs -->
+                    {{-- Transcript / Summary tabs --}}
                     @if($meeting->transcript || $meeting->summary)
                         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+
+                            {{-- Tab header --}}
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center gap-3">
                                     <h3 class="text-xl font-bold text-gray-800 dark:text-white flex items-center">
                                         <i class="fas fa-file-alt text-blue-500 mr-3"></i>Content
                                     </h3>
                                     <div class="inline-flex rounded-lg bg-gray-100 dark:bg-gray-900 p-1">
-                                        <button
-                                            id="transcriptTab"
-                                            type="button"
-                                            class="px-4 py-2 rounded-lg font-medium transition-all duration-200
-                                                   bg-white dark:bg-gray-800 text-blue-600 shadow-sm
-                                                   border border-gray-200 dark:border-gray-700">
+                                        <button id="transcriptTab"
+                                                class="px-4 py-2 rounded-lg font-medium transition-all duration-200
+                                                       bg-white dark:bg-gray-800 text-blue-600 shadow-sm
+                                                       border border-gray-200 dark:border-gray-700">
                                             Transcript
                                         </button>
-                                        <button
-                                            id="summaryTab"
-                                            type="button"
-                                            class="px-4 py-2 rounded-lg font-medium transition-all duration-200
-                                                   text-gray-600 dark:text-gray-300 ml-1">
+                                        <button id="summaryTab"
+                                                class="px-4 py-2 rounded-lg font-medium transition-all duration-200
+                                                       text-gray-600 dark:text-gray-300 ml-1">
                                             Summary
                                         </button>
                                     </div>
                                 </div>
 
                                 <div class="flex gap-2 items-center">
-                                    <div class="relative hidden" id="searchContainer">
-                                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
-                                        <input type="text" 
-                                               id="searchTranscript" 
-                                               placeholder="Search transcript..."
-                                               class="pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <div class="relative" id="searchContainer">
+                                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                        <input type="text"
+                                               id="searchTranscript"
+                                               placeholder="Search transcript…"
+                                               class="pl-9 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-700 dark:text-white text-sm focus:ring-2 focus:ring-blue-500">
                                     </div>
-                                    <a href="{{ route('transcripts.download', $meeting) }}" 
-                                       id="downloadTranscriptBtn"
-                                       class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition transform hover:scale-105 active:scale-95 hidden">
-                                        <i class="fas fa-download mr-1"></i>Download
-                                    </a>
+                                    @if($meeting->transcript)
+                                        <a href="{{ route('transcripts.download', $meeting) }}"
+                                           id="downloadTranscriptBtn"
+                                           class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition">
+                                            <i class="fas fa-download mr-1"></i>Download
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
 
-                            <!-- Transcript Panel -->
+                            {{-- Transcript panel --}}
                             <div id="transcriptPanel" class="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                                @if($meeting->transcript && $meeting->transcript->segments)
+                                @if($meeting->transcript && !empty($meeting->transcript->segments))
                                     @foreach($meeting->transcript->segments as $segment)
-                                        <div class="transcript-segment p-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700 cursor-pointer transition-all duration-200 border border-transparent hover:border-blue-200 dark:hover:border-blue-800"
-                                             data-start="{{ $segment['start'] }}"
-                                             data-end="{{ $segment['end'] }}"
-                                             data-segment-id="{{ $segment['id'] }}">
+                                        <div class="transcript-segment p-4 rounded-lg hover:bg-blue-50 dark:hover:bg-gray-700
+                                                    cursor-pointer transition-all duration-200
+                                                    border border-transparent hover:border-blue-200 dark:hover:border-blue-800"
+                                             data-start="{{ $segment['start'] ?? 0 }}"
+                                             data-end="{{ $segment['end'] ?? 0 }}"
+                                             data-segment-id="{{ $segment['id'] ?? 0 }}">
                                             <div class="flex items-start gap-3">
-                                                <span class="text-xs text-blue-600 dark:text-blue-400 font-mono flex-shrink-0 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">
-                                                    {{ gmdate('i:s', (int)$segment['start']) }}
+                                                <span class="text-xs text-blue-600 dark:text-blue-400 font-mono flex-shrink-0
+                                                             bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">
+                                                    {{ gmdate('i:s', (int)($segment['start'] ?? 0)) }}
                                                 </span>
                                                 <p class="text-sm text-gray-700 dark:text-gray-300 flex-1 leading-relaxed">
-                                                    {{ $segment['text'] }}
+                                                    {{ $segment['text'] ?? '' }}
                                                 </p>
                                             </div>
                                         </div>
                                     @endforeach
-                                @elseif($meeting->transcript)
+                                @elseif($meeting->transcript && $meeting->transcript->full_text)
                                     <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
                                         {{ $meeting->transcript->full_text }}
                                     </p>
                                 @else
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 italic">
-                                        Transcript is not available yet.
-                                    </p>
+                                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                                        <i class="fas fa-file-alt text-3xl mb-3 opacity-30"></i>
+                                        <p class="text-sm">Transcript is not available yet.</p>
+                                    </div>
                                 @endif
                             </div>
 
-                            <!-- Summary Panel -->
+                            {{-- Summary panel --}}
                             <div id="summaryPanel" class="hidden max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                                 @if($meeting->summary)
                                     @if($meeting->summary->brief_summary)
@@ -182,24 +220,60 @@
                                         </div>
                                     @endif
 
-                                    <div class="prose prose-sm dark:prose-invert max-w-none">
-                                        <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                                            {{ $meeting->summary->summary_text }}
-                                        </p>
-                                    </div>
+                                    @if($meeting->summary->summary_text)
+                                        <div class="prose prose-sm dark:prose-invert max-w-none mb-4">
+                                            <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                                                {{ $meeting->summary->summary_text }}
+                                            </p>
+                                        </div>
+                                    @endif
+
+                                    @if(!empty($meeting->summary->action_points))
+                                        <div class="mb-4">
+                                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2 flex items-center">
+                                                <i class="fas fa-tasks text-green-500 mr-2"></i>Action Points
+                                            </h4>
+                                            <ul class="space-y-2">
+                                                @foreach($meeting->summary->action_points as $point)
+                                                    <li class="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                                                        <i class="fas fa-check-circle text-green-500 mr-2 mt-1 flex-shrink-0"></i>
+                                                        {{ $point }}
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
+
+                                    @if(!empty($meeting->summary->key_decisions))
+                                        <div class="mb-4">
+                                            <h4 class="font-semibold text-gray-800 dark:text-white mb-2 flex items-center">
+                                                <i class="fas fa-clipboard-check text-blue-500 mr-2"></i>Key Decisions
+                                            </h4>
+                                            <ul class="space-y-2">
+                                                @foreach($meeting->summary->key_decisions as $decision)
+                                                    <li class="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                                                        <i class="fas fa-arrow-right text-blue-500 mr-2 mt-1 flex-shrink-0"></i>
+                                                        {{ $decision }}
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @endif
                                 @else
-                                    <p class="text-sm text-gray-500 dark:text-gray-400 italic">
-                                        Summary will appear here once processing is complete.
-                                    </p>
+                                    <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                                        <i class="fas fa-lightbulb text-3xl mb-3 opacity-30"></i>
+                                        <p class="text-sm">Summary will appear here once processing is complete.</p>
+                                    </div>
                                 @endif
                             </div>
                         </div>
                     @endif
                 </div>
 
-                <!-- Right Column - Modern Grid Layout (4 cols) -->
+                {{-- ── RIGHT: Stats + Export + Sentiment + Danger ─────────── --}}
                 <div class="lg:col-span-4 space-y-6">
-                    <!-- Quick Stats Cards - Row 1 -->
+
+                    {{-- Quick stats row 1 --}}
                     <div class="grid grid-cols-2 gap-4">
                         <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl shadow-lg p-5 hover:shadow-xl transition-all transform hover:-translate-y-1">
                             <div class="flex items-center justify-between mb-2">
@@ -224,7 +298,7 @@
                         </div>
                     </div>
 
-                    <!-- Language & Word Count Cards - Row 2 -->
+                    {{-- Quick stats row 2 --}}
                     <div class="grid grid-cols-2 gap-4">
                         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-5 hover:shadow-xl transition-all border border-gray-100 dark:border-gray-700">
                             <div class="flex items-center gap-3">
@@ -233,12 +307,13 @@
                                 </div>
                                 <div>
                                     <p class="text-xs text-gray-500 dark:text-gray-400">Language</p>
-                                    <p class="text-lg font-semibold text-gray-800 dark:text-white">{{ strtoupper($meeting->transcript->language ?? 'N/A') }}</p>
+                                    <p class="text-lg font-semibold text-gray-800 dark:text-white">
+                                        {{ strtoupper($meeting->transcript?->language ?? 'N/A') }}
+                                    </p>
                                 </div>
                             </div>
                         </div>
 
-                        @if($meeting->transcript)
                         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-5 hover:shadow-xl transition-all border border-gray-100 dark:border-gray-700">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 bg-orange-500/10 rounded-lg flex items-center justify-center">
@@ -246,14 +321,15 @@
                                 </div>
                                 <div>
                                     <p class="text-xs text-gray-500 dark:text-gray-400">Words</p>
-                                    <p class="text-lg font-semibold text-gray-800 dark:text-white">{{ number_format($meeting->transcript->word_count) }}</p>
+                                    <p class="text-lg font-semibold text-gray-800 dark:text-white">
+                                        {{ number_format($meeting->transcript?->word_count ?? 0) }}
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                        @endif
                     </div>
 
-                    <!-- Export Options - Modern Card -->
+                    {{-- Export --}}
                     @if($meeting->processing_status === 'completed')
                         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all border-t-4 border-blue-500">
                             <div class="flex items-center justify-between mb-4">
@@ -264,18 +340,21 @@
                             </div>
                             <form action="{{ route('meetings.export', $meeting) }}" method="POST" class="grid grid-cols-3 gap-2">
                                 @csrf
-                                <button type="submit" name="format" value="pdf" 
-                                        class="flex flex-col items-center justify-center p-3 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition group">
+                                <button type="submit" name="format" value="pdf"
+                                        class="flex flex-col items-center justify-center p-3 bg-red-50 dark:bg-red-900/20
+                                               hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition group">
                                     <i class="fas fa-file-pdf text-red-600 dark:text-red-400 text-xl mb-1 group-hover:scale-110 transition-transform"></i>
                                     <span class="text-xs font-medium text-red-700 dark:text-red-300">PDF</span>
                                 </button>
-                                <button type="submit" name="format" value="docx" 
-                                        class="flex flex-col items-center justify-center p-3 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg transition group">
+                                <button type="submit" name="format" value="docx"
+                                        class="flex flex-col items-center justify-center p-3 bg-blue-50 dark:bg-blue-900/20
+                                               hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg transition group">
                                     <i class="fas fa-file-word text-blue-600 dark:text-blue-400 text-xl mb-1 group-hover:scale-110 transition-transform"></i>
                                     <span class="text-xs font-medium text-blue-700 dark:text-blue-300">DOCX</span>
                                 </button>
-                                <button type="submit" name="format" value="txt" 
-                                        class="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition group">
+                                <button type="submit" name="format" value="txt"
+                                        class="flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-gray-700
+                                               hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition group">
                                     <i class="fas fa-file-alt text-gray-600 dark:text-gray-400 text-xl mb-1 group-hover:scale-110 transition-transform"></i>
                                     <span class="text-xs font-medium text-gray-700 dark:text-gray-300">TXT</span>
                                 </button>
@@ -283,88 +362,94 @@
                         </div>
                     @endif
 
-                    <!-- Summary & Insights - Collapsible Card -->
+                    {{-- Summary sidebar card --}}
                     @if($meeting->summary)
                         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all">
-                            <div class="flex items-center justify-between cursor-pointer" onclick="toggleSummaryDetails()">
+                            <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleSummaryDetails()">
                                 <h3 class="text-lg font-bold text-gray-800 dark:text-white flex items-center">
                                     <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>Summary
                                 </h3>
                                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-200" id="summaryChevron"></i>
                             </div>
 
-                            <div id="summaryContent" class="mt-4">
+                            <div id="summaryContent">
                                 @if($meeting->summary->brief_summary)
-                                    <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg mb-4">
-                                        <p class="text-sm font-medium text-gray-800 dark:text-gray-100">
+                                    <div class="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg mb-3">
+                                        <p class="text-xs font-medium text-gray-800 dark:text-gray-100">
                                             {{ $meeting->summary->brief_summary }}
                                         </p>
                                     </div>
                                 @endif
 
-                                <div class="prose prose-sm dark:prose-invert max-w-none">
-                                    <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
+                                @if($meeting->summary->summary_text)
+                                    <p class="text-xs text-gray-700 dark:text-gray-300 leading-relaxed" id="summaryPreview">
                                         {{ Str::limit($meeting->summary->summary_text, 150) }}
                                     </p>
-                                </div>
-                                
-                                @if(strlen($meeting->summary->summary_text) > 150)
-                                    <button class="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-2 focus:outline-none" onclick="expandSummary(event)">
-                                        Read more
-                                    </button>
+                                    @if(strlen($meeting->summary->summary_text) > 150)
+                                        <p class="text-xs text-gray-700 dark:text-gray-300 leading-relaxed hidden" id="summaryFull">
+                                            {{ $meeting->summary->summary_text }}
+                                        </p>
+                                        <button onclick="toggleSummaryText(event)"
+                                                id="summaryToggleBtn"
+                                                class="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-2">
+                                            Read more
+                                        </button>
+                                    @endif
                                 @endif
                             </div>
                         </div>
 
-                        <!-- Action Points & Key Decisions Grid -->
+                        {{-- Action Points & Key Decisions --}}
                         <div class="grid grid-cols-2 gap-4">
-                            @if($meeting->summary->action_points && count($meeting->summary->action_points) > 0)
+                            @if(!empty($actionPoints))
                                 <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-5 hover:shadow-xl transition-all border-l-4 border-green-500">
                                     <div class="flex items-center justify-between mb-3">
-                                        <h4 class="font-bold text-gray-800 dark:text-white flex items-center">
+                                        <h4 class="font-bold text-gray-800 dark:text-white flex items-center text-sm">
                                             <i class="fas fa-tasks text-green-500 mr-2"></i>Actions
                                         </h4>
                                         <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-2 py-1 rounded-full">
-                                            {{ count($meeting->summary->action_points) }}
+                                            {{ count($actionPoints) }}
                                         </span>
                                     </div>
                                     <ul class="space-y-2">
-                                        @foreach(array_slice($meeting->summary->action_points, 0, 2) as $point)
+                                        @foreach(array_slice($actionPoints, 0, 2) as $point)
                                             <li class="flex items-start text-xs text-gray-700 dark:text-gray-300">
                                                 <i class="fas fa-check-circle text-green-500 mr-2 mt-0.5 flex-shrink-0"></i>
                                                 <span class="line-clamp-2">{{ $point }}</span>
                                             </li>
                                         @endforeach
                                     </ul>
-                                    @if(count($meeting->summary->action_points) > 2)
-                                        <button class="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-2" onclick="showAllItems('actions')">
-                                            +{{ count($meeting->summary->action_points) - 2 }} more
+                                    @if(count($actionPoints) > 2)
+                                        <button onclick="showAllItems('actions')"
+                                                class="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-2">
+                                            +{{ count($actionPoints) - 2 }} more
                                         </button>
                                     @endif
                                 </div>
                             @endif
 
-                            @if($meeting->summary->key_decisions && count($meeting->summary->key_decisions) > 0)
+                            @if(!empty($keyDecisions))
                                 <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-5 hover:shadow-xl transition-all border-l-4 border-blue-500">
                                     <div class="flex items-center justify-between mb-3">
-                                        <h4 class="font-bold text-gray-800 dark:text-white flex items-center">
+                                        <h4 class="font-bold text-gray-800 dark:text-white flex items-center text-sm">
                                             <i class="fas fa-clipboard-check text-blue-500 mr-2"></i>Decisions
                                         </h4>
                                         <span class="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-full">
-                                            {{ count($meeting->summary->key_decisions) }}
+                                            {{ count($keyDecisions) }}
                                         </span>
                                     </div>
                                     <ul class="space-y-2">
-                                        @foreach(array_slice($meeting->summary->key_decisions, 0, 2) as $decision)
+                                        @foreach(array_slice($keyDecisions, 0, 2) as $decision)
                                             <li class="flex items-start text-xs text-gray-700 dark:text-gray-300">
                                                 <i class="fas fa-arrow-right text-blue-500 mr-2 mt-0.5 flex-shrink-0"></i>
                                                 <span class="line-clamp-2">{{ $decision }}</span>
                                             </li>
                                         @endforeach
                                     </ul>
-                                    @if(count($meeting->summary->key_decisions) > 2)
-                                        <button class="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-2" onclick="showAllItems('decisions')">
-                                            +{{ count($meeting->summary->key_decisions) - 2 }} more
+                                    @if(count($keyDecisions) > 2)
+                                        <button onclick="showAllItems('decisions')"
+                                                class="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-2">
+                                            +{{ count($keyDecisions) - 2 }} more
                                         </button>
                                     @endif
                                 </div>
@@ -372,7 +457,7 @@
                         </div>
                     @endif
 
-                    <!-- Sentiment Analysis - Modern Card -->
+                    {{-- Sentiment --}}
                     @if($meeting->sentimentAnalysis)
                         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all">
                             <div class="flex items-center justify-between mb-4">
@@ -389,40 +474,27 @@
                             </div>
 
                             <div class="space-y-3">
-                                <div>
-                                    <div class="flex items-center justify-between mb-1">
-                                        <span class="text-xs text-green-600 dark:text-green-400">Positive</span>
-                                        <span class="text-xs font-bold text-green-600">{{ $meeting->sentimentAnalysis->positive_score }}%</span>
+                                @foreach([
+                                    ['label' => 'Positive', 'score' => $meeting->sentimentAnalysis->positive_score, 'color' => 'bg-green-500', 'text' => 'text-green-600 dark:text-green-400'],
+                                    ['label' => 'Neutral',  'score' => $meeting->sentimentAnalysis->neutral_score,  'color' => 'bg-gray-500',  'text' => 'text-gray-600 dark:text-gray-400'],
+                                    ['label' => 'Negative', 'score' => $meeting->sentimentAnalysis->negative_score, 'color' => 'bg-red-500',   'text' => 'text-red-600 dark:text-red-400'],
+                                ] as $item)
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-xs {{ $item['text'] }}">{{ $item['label'] }}</span>
+                                            <span class="text-xs font-bold {{ $item['text'] }}">{{ $item['score'] }}%</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                            <div class="{{ $item['color'] }} h-2 rounded-full transition-all duration-500"
+                                                 style="width: {{ min(100, max(0, $item['score'])) }}%"></div>
+                                        </div>
                                     </div>
-                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                        <div class="bg-green-500 h-2 rounded-full transition-all duration-500" style="width: {{ $meeting->sentimentAnalysis->positive_score }}%"></div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div class="flex items-center justify-between mb-1">
-                                        <span class="text-xs text-gray-600 dark:text-gray-400">Neutral</span>
-                                        <span class="text-xs font-bold text-gray-600">{{ $meeting->sentimentAnalysis->neutral_score }}%</span>
-                                    </div>
-                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                        <div class="bg-gray-500 h-2 rounded-full transition-all duration-500" style="width: {{ $meeting->sentimentAnalysis->neutral_score }}%"></div>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <div class="flex items-center justify-between mb-1">
-                                        <span class="text-xs text-red-600 dark:text-red-400">Negative</span>
-                                        <span class="text-xs font-bold text-red-600">{{ $meeting->sentimentAnalysis->negative_score }}%</span>
-                                    </div>
-                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                        <div class="bg-red-500 h-2 rounded-full transition-all duration-500" style="width: {{ $meeting->sentimentAnalysis->negative_score }}%"></div>
-                                    </div>
-                                </div>
+                                @endforeach
                             </div>
                         </div>
                     @endif
 
-                    <!-- Delete Meeting - Danger Zone -->
+                    {{-- Danger Zone --}}
                     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all border border-red-200 dark:border-red-800/30">
                         <div class="flex items-center gap-3 mb-3">
                             <div class="w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
@@ -431,14 +503,17 @@
                             <h3 class="text-lg font-bold text-red-600 dark:text-red-400">Danger Zone</h3>
                         </div>
                         <p class="text-xs text-gray-600 dark:text-gray-400 mb-4">
-                            Permanently delete this meeting and all associated data.
+                            Permanently delete this meeting and all its data.
                         </p>
-                        <form action="{{ route('meetings.destroy', $meeting) }}" method="POST" onsubmit="return confirm('Are you sure? This cannot be undone.');">
+                        <form action="{{ route('meetings.destroy', $meeting) }}" method="POST"
+                              onsubmit="return confirm('Are you sure? This cannot be undone.');">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2">
-                                <i class="fas fa-trash"></i>
-                                Delete Meeting
+                            <button type="submit"
+                                    class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg
+                                           transition transform hover:scale-[1.02] active:scale-[0.98]
+                                           flex items-center justify-center gap-2">
+                                <i class="fas fa-trash"></i>Delete Meeting
                             </button>
                         </form>
                     </div>
@@ -446,347 +521,215 @@
             </div>
         </div>
     </div>
-</div>
 
-@push('styles')
-<style>
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #cbd5e0;
-        border-radius: 10px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-    }
-    .dark .custom-scrollbar::-webkit-scrollbar-track {
-        background: #2d3748;
-    }
-    .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: #4a5568;
-    }
-    .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: #718096;
-    }
-    .line-clamp-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-</style>
-@endpush
+    @push('styles')
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dark .custom-scrollbar::-webkit-scrollbar-track { background: #2d3748; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #4a5568; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #718096; }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+    @endpush
 
-@push('scripts')
-<script src="https://unpkg.com/wavesurfer.js@7"></script>
-<script>
-    // Initialize WaveSurfer
-    const wavesurfer = WaveSurfer.create({
-        container: '#waveform',
-        waveColor: '#3B82F6',
-        progressColor: '#1E40AF',
-        cursorColor: '#1E40AF',
-        barWidth: 2,
-        barRadius: 3,
-        cursorWidth: 1,
-        height: 80,
-        barGap: 2,
-    });
+    @push('scripts')
+    <script src="https://unpkg.com/wavesurfer.js@7"></script>
+    <script>
+    (() => {
+        // ── Data from PHP (safe) ────────────────────────────────────────────
+        const AUDIO_URL     = @json($audioUrl);
+        const ACTION_POINTS = @json($actionPoints);
+        const KEY_DECISIONS = @json($keyDecisions);
+        const SUMMARY_TEXT  = @json($summaryText);
 
-    // Load audio
-    wavesurfer.load('{{ $meeting->audio_url }}');
-
-    const playPauseBtn = document.getElementById('playPauseBtn');
-    const currentTimeEl = document.getElementById('currentTime');
-    const playbackRateSelect = document.getElementById('playbackRate');
-    const volumeControl = document.getElementById('volumeControl');
-
-    // Play/Pause
-    playPauseBtn.addEventListener('click', () => {
-        wavesurfer.playPause();
-    });
-
-    wavesurfer.on('play', () => {
-        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-    });
-
-    wavesurfer.on('pause', () => {
-        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-    });
-
-    // Update current time
-    wavesurfer.on('timeupdate', (currentTime) => {
-        currentTimeEl.textContent = formatTime(currentTime);
-        highlightCurrentSegment(currentTime);
-    });
-
-    // Playback rate
-    playbackRateSelect.addEventListener('change', (e) => {
-        wavesurfer.setPlaybackRate(parseFloat(e.target.value));
-    });
-
-    // Volume control
-    volumeControl.addEventListener('input', (e) => {
-        wavesurfer.setVolume(e.target.value / 100);
-    });
-
-    // Click on transcript to jump to time
-    document.querySelectorAll('.transcript-segment').forEach(segment => {
-        segment.addEventListener('click', () => {
-            const startTime = parseFloat(segment.dataset.start);
-            wavesurfer.seekTo(startTime / wavesurfer.getDuration());
-            wavesurfer.play();
+        // ── WaveSurfer ──────────────────────────────────────────────────────
+        @if($meeting->audio_file_path && $audioUrl)
+        const wavesurfer = WaveSurfer.create({
+            container:     '#waveform',
+            waveColor:     '#3B82F6',
+            progressColor: '#1E40AF',
+            cursorColor:   '#1E40AF',
+            barWidth:      2,
+            barRadius:     3,
+            cursorWidth:   1,
+            height:        80,
+            barGap:        2,
+            responsive:    true,
         });
-    });
 
-    // Highlight current segment
-    function highlightCurrentSegment(currentTime) {
-        document.querySelectorAll('.transcript-segment').forEach(segment => {
-            const start = parseFloat(segment.dataset.start);
-            const end = parseFloat(segment.dataset.end);
-            
-            if (currentTime >= start && currentTime <= end) {
-                segment.classList.add('bg-blue-100', 'dark:bg-blue-900/30', 'border-blue-500');
-                segment.classList.remove('border-transparent');
-                
-                // Auto-scroll with smooth behavior
-                const container = document.getElementById('transcriptPanel');
-                const segmentTop = segment.offsetTop;
-                const containerScrollTop = container.scrollTop;
-                const containerHeight = container.clientHeight;
-                
-                if (segmentTop < containerScrollTop || segmentTop > containerScrollTop + containerHeight - 100) {
-                    segment.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-            } else {
-                segment.classList.remove('bg-blue-100', 'dark:bg-blue-900/30', 'border-blue-500');
-                segment.classList.add('border-transparent');
-            }
+        wavesurfer.load(AUDIO_URL);
+
+        const playBtn      = document.getElementById('playPauseBtn');
+        const currentTimeEl = document.getElementById('currentTime');
+        const durationEl   = document.getElementById('duration');
+        const loadingState = document.getElementById('loadingState');
+        const waveformEl   = document.getElementById('waveform');
+        const audioControls= document.getElementById('audioControls');
+
+        wavesurfer.on('loading', pct => {
+            if (loadingState) loadingState.innerHTML =
+                `<i class="fas fa-spinner fa-spin text-2xl mb-2"></i><p class="text-sm">Loading audio… ${pct}%</p>`;
         });
-    }
 
-    // Tabs: Transcript / Summary
-    const transcriptTab = document.getElementById('transcriptTab');
-    const summaryTab = document.getElementById('summaryTab');
-    const transcriptPanel = document.getElementById('transcriptPanel');
-    const summaryPanel = document.getElementById('summaryPanel');
-    const searchContainer = document.getElementById('searchContainer');
-    const searchInput = document.getElementById('searchTranscript');
-    const downloadBtn = document.getElementById('downloadTranscriptBtn');
+        wavesurfer.on('ready', () => {
+            loadingState?.classList.add('hidden');
+            waveformEl?.classList.remove('hidden');
+            audioControls?.classList.remove('hidden');
+            if (durationEl) durationEl.textContent = fmt(wavesurfer.getDuration());
+        });
 
-    function setActiveTab(tab) {
-        const isTranscript = tab === 'transcript';
+        wavesurfer.on('error', err => {
+            console.error('WaveSurfer error:', err);
+            if (loadingState) loadingState.innerHTML =
+                `<i class="fas fa-exclamation-circle text-red-500 text-2xl mb-2"></i>
+                 <p class="text-sm text-red-500">Failed to load audio.</p>`;
+        });
 
-        if (transcriptTab && summaryTab) {
-            if (isTranscript) {
-                transcriptTab.classList.add('bg-white', 'dark:bg-gray-800', 'text-blue-600', 'shadow-sm', 'border', 'border-gray-200', 'dark:border-gray-700');
-                transcriptTab.classList.remove('text-gray-600', 'dark:text-gray-300');
-                summaryTab.classList.remove('bg-white', 'dark:bg-gray-800', 'text-blue-600', 'shadow-sm', 'border', 'border-gray-200', 'dark:border-gray-700');
-                summaryTab.classList.add('text-gray-600', 'dark:text-gray-300');
-            } else {
-                summaryTab.classList.add('bg-white', 'dark:bg-gray-800', 'text-blue-600', 'shadow-sm', 'border', 'border-gray-200', 'dark:border-gray-700');
-                summaryTab.classList.remove('text-gray-600', 'dark:text-gray-300');
-                transcriptTab.classList.remove('bg-white', 'dark:bg-gray-800', 'text-blue-600', 'shadow-sm', 'border', 'border-gray-200', 'dark:border-gray-700');
-                transcriptTab.classList.add('text-gray-600', 'dark:text-gray-300');
-            }
+        playBtn?.addEventListener('click', () => wavesurfer.playPause());
+
+        wavesurfer.on('play',  () => { if (playBtn) playBtn.innerHTML = '<i class="fas fa-pause"></i>'; });
+        wavesurfer.on('pause', () => { if (playBtn) playBtn.innerHTML = '<i class="fas fa-play"></i>'; });
+
+        wavesurfer.on('timeupdate', t => {
+            if (currentTimeEl) currentTimeEl.textContent = fmt(t);
+            highlightSegment(t);
+        });
+
+        document.getElementById('playbackRate')?.addEventListener('change', e =>
+            wavesurfer.setPlaybackRate(parseFloat(e.target.value))
+        );
+        document.getElementById('volumeControl')?.addEventListener('input', e =>
+            wavesurfer.setVolume(e.target.value / 100)
+        );
+
+        // Click transcript → seek
+        document.querySelectorAll('.transcript-segment').forEach(seg => {
+            seg.addEventListener('click', () => {
+                const t = parseFloat(seg.dataset.start);
+                const d = wavesurfer.getDuration();
+                if (d > 0) { wavesurfer.seekTo(t / d); wavesurfer.play(); }
+            });
+        });
+
+        function highlightSegment(t) {
+            document.querySelectorAll('.transcript-segment').forEach(seg => {
+                const s = parseFloat(seg.dataset.start);
+                const e = parseFloat(seg.dataset.end);
+                const active = t >= s && t <= e;
+                seg.classList.toggle('bg-blue-100',   active);
+                seg.classList.toggle('border-blue-500', active);
+                seg.classList.toggle('border-transparent', !active);
+                if (active) seg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
         }
 
-        if (transcriptPanel && summaryPanel) {
-            if (isTranscript) {
-                transcriptPanel.classList.remove('hidden');
-                summaryPanel.classList.add('hidden');
-            } else {
-                summaryPanel.classList.remove('hidden');
-                transcriptPanel.classList.add('hidden');
-            }
+        // Keyboard shortcuts
+        document.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (e.code === 'Space')       { e.preventDefault(); wavesurfer.playPause(); }
+            if (e.code === 'ArrowLeft')   { e.preventDefault(); wavesurfer.setTime(Math.max(0, wavesurfer.getCurrentTime() - 5)); }
+            if (e.code === 'ArrowRight')  { e.preventDefault(); wavesurfer.setTime(Math.min(wavesurfer.getDuration(), wavesurfer.getCurrentTime() + 5)); }
+        });
+        @endif
+
+        // ── Tabs ────────────────────────────────────────────────────────────
+        const tTab = document.getElementById('transcriptTab');
+        const sTab = document.getElementById('summaryTab');
+        const tPanel = document.getElementById('transcriptPanel');
+        const sPanel = document.getElementById('summaryPanel');
+        const searchBox = document.getElementById('searchContainer');
+
+        function setTab(tab) {
+            const isTrans = tab === 'transcript';
+            tPanel?.classList.toggle('hidden', !isTrans);
+            sPanel?.classList.toggle('hidden',  isTrans);
+            searchBox?.classList.toggle('hidden', !isTrans);
+
+            [tTab, sTab].forEach((btn, i) => {
+                const active = (i === 0) === isTrans;
+                btn?.classList.toggle('bg-white',          active);
+                btn?.classList.toggle('dark:bg-gray-800',  active);
+                btn?.classList.toggle('text-blue-600',     active);
+                btn?.classList.toggle('shadow-sm',         active);
+                btn?.classList.toggle('border',            active);
+                btn?.classList.toggle('border-gray-200',   active);
+                btn?.classList.toggle('dark:border-gray-700', active);
+                btn?.classList.toggle('text-gray-600',    !active);
+                btn?.classList.toggle('dark:text-gray-300',!active);
+            });
         }
 
-        if (searchContainer && downloadBtn) {
-            if (isTranscript) {
-                searchContainer.classList.remove('hidden');
-                downloadBtn.classList.remove('hidden');
-            } else {
-                searchContainer.classList.add('hidden');
-                downloadBtn.classList.add('hidden');
-            }
-        }
-    }
+        tTab?.addEventListener('click', () => setTab('transcript'));
+        sTab?.addEventListener('click', () => setTab('summary'));
+        setTab('transcript');
 
-    if (transcriptTab) {
-        transcriptTab.addEventListener('click', () => setActiveTab('transcript'));
-    }
+        // ── Transcript search ───────────────────────────────────────────────
+        let searchTO;
+        document.getElementById('searchTranscript')?.addEventListener('input', e => {
+            clearTimeout(searchTO);
+            searchTO = setTimeout(() => {
+                const q = e.target.value.toLowerCase().trim();
+                document.querySelectorAll('.transcript-segment').forEach(seg => {
+                    const p = seg.querySelector('p');
+                    const orig = p.getAttribute('data-orig') || p.textContent;
+                    if (!p.getAttribute('data-orig')) p.setAttribute('data-orig', p.textContent);
 
-    if (summaryTab) {
-        summaryTab.addEventListener('click', () => setActiveTab('summary'));
-    }
-
-    // Initialize default tab
-    setActiveTab('transcript');
-
-    // Search transcript with debounce
-    if (searchInput) {
-        let searchTimeout;
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                const query = e.target.value.toLowerCase();
-                
-                document.querySelectorAll('.transcript-segment').forEach(segment => {
-                    const text = segment.textContent.toLowerCase();
-                    const p = segment.querySelector('p');
-                    const originalText = p.textContent;
-                    
-                    if (text.includes(query)) {
-                        segment.style.display = 'block';
-                        if (query) {
-                            const regex = new RegExp(`(${query})`, 'gi');
-                            p.innerHTML = originalText.replace(regex, '<mark class="bg-yellow-300 dark:bg-yellow-600 px-1 rounded">$1</mark>');
-                        } else {
-                            p.textContent = originalText;
-                        }
+                    if (!q) {
+                        seg.style.display = '';
+                        p.textContent = orig;
+                        return;
+                    }
+                    if (orig.toLowerCase().includes(q)) {
+                        seg.style.display = '';
+                        p.innerHTML = orig.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'),
+                            '<mark class="bg-yellow-300 dark:bg-yellow-600 px-0.5 rounded">$1</mark>');
                     } else {
-                        segment.style.display = query ? 'none' : 'block';
-                        if (!query) {
-                            p.textContent = originalText;
-                        }
+                        seg.style.display = 'none';
                     }
                 });
-            }, 300);
+            }, 250);
         });
-    }
 
-    // Summary toggle functionality
-    window.toggleSummaryDetails = function() {
-        const summaryContent = document.getElementById('summaryContent');
-        const chevron = document.getElementById('summaryChevron');
-        const fullSummary = `{{ addslashes($meeting->summary->summary_text ?? '') }}`;
-        
-        if (summaryContent.dataset.expanded === 'true') {
-            summaryContent.innerHTML = `
-                @if($meeting->summary->brief_summary)
-                    <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg mb-4">
-                        <p class="text-sm font-medium text-gray-800 dark:text-gray-100">
-                            {{ addslashes($meeting->summary->brief_summary) }}
-                        </p>
-                    </div>
-                @endif
-                <div class="prose prose-sm dark:prose-invert max-w-none">
-                    <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                        ${fullSummary.substring(0, 150)}...
-                    </p>
-                </div>
-                <button class="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-2" onclick="expandSummary(event)">
-                    Read more
-                </button>
-            `;
-            summaryContent.dataset.expanded = 'false';
-            chevron.style.transform = 'rotate(0deg)';
-        } else {
-            summaryContent.innerHTML = `
-                @if($meeting->summary->brief_summary)
-                    <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg mb-4">
-                        <p class="text-sm font-medium text-gray-800 dark:text-gray-100">
-                            {{ addslashes($meeting->summary->brief_summary) }}
-                        </p>
-                    </div>
-                @endif
-                <div class="prose prose-sm dark:prose-invert max-w-none">
-                    <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                        ${fullSummary}
-                    </p>
-                </div>
-                <button class="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-2" onclick="collapseSummary(event)">
-                    Read less
-                </button>
-            `;
-            summaryContent.dataset.expanded = 'true';
-            chevron.style.transform = 'rotate(180deg)';
-        }
-    }
+        // ── Summary toggle (read more / less) ──────────────────────────────
+        window.toggleSummaryText = function(e) {
+            e.stopPropagation();
+            const preview = document.getElementById('summaryPreview');
+            const full    = document.getElementById('summaryFull');
+            const btn     = document.getElementById('summaryToggleBtn');
+            if (!preview || !full || !btn) return;
 
-    window.expandSummary = function(event) {
-        event.stopPropagation();
-        const summaryContent = document.getElementById('summaryContent');
-        const chevron = document.getElementById('summaryChevron');
-        const fullSummary = `{{ addslashes($meeting->summary->summary_text ?? '') }}`;
-        
-        summaryContent.innerHTML = `
-            @if($meeting->summary->brief_summary)
-                <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg mb-4">
-                    <p class="text-sm font-medium text-gray-800 dark:text-gray-100">
-                        {{ addslashes($meeting->summary->brief_summary) }}
-                    </p>
-                </div>
-            @endif
-            <div class="prose prose-sm dark:prose-invert max-w-none">
-                <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                    ${fullSummary}
-                </p>
-            </div>
-            <button class="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-2" onclick="collapseSummary(event)">
-                Read less
-            </button>
-        `;
-        summaryContent.dataset.expanded = 'true';
-        chevron.style.transform = 'rotate(180deg)';
-    }
+            const showing = !full.classList.contains('hidden');
+            full.classList.toggle('hidden', showing);
+            preview.classList.toggle('hidden', !showing);
+            btn.textContent = showing ? 'Read more' : 'Read less';
+        };
 
-    window.collapseSummary = function(event) {
-        event.stopPropagation();
-        const summaryContent = document.getElementById('summaryContent');
-        const chevron = document.getElementById('summaryChevron');
-        const fullSummary = `{{ addslashes($meeting->summary->summary_text ?? '') }}`;
-        
-        summaryContent.innerHTML = `
-            @if($meeting->summary->brief_summary)
-                <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg mb-4">
-                    <p class="text-sm font-medium text-gray-800 dark:text-gray-100">
-                        {{ addslashes($meeting->summary->brief_summary) }}
-                    </p>
-                </div>
-            @endif
-            <div class="prose prose-sm dark:prose-invert max-w-none">
-                <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                    ${fullSummary.substring(0, 150)}...
-                </p>
-            </div>
-            <button class="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-2" onclick="expandSummary(event)">
-                Read more
-            </button>
-        `;
-        summaryContent.dataset.expanded = 'false';
-        chevron.style.transform = 'rotate(0deg)';
-    }
+        window.toggleSummaryDetails = function() {
+            // no-op – kept for backward compat if called elsewhere
+        };
 
-    // Show all items modal (simplified version - you can enhance with a modal)
-    window.showAllItems = function(type) {
-        @if($meeting->summary)
-            const items = type === 'actions' 
-                ? @json($meeting->summary->action_points ?? [])
-                : @json($meeting->summary->key_decisions ?? []);
-            
+        // ── Show all items ──────────────────────────────────────────────────
+        window.showAllItems = function(type) {
+            const items = type === 'actions' ? ACTION_POINTS : KEY_DECISIONS;
             const title = type === 'actions' ? 'Action Points' : 'Key Decisions';
-            const itemList = items.map(item => `• ${item}`).join('\n');
-            
-            alert(`${title}:\n\n${itemList}`);
-        @endif
-    }
+            alert(title + ':\n\n' + items.map(i => '• ' + i).join('\n'));
+        };
 
-    function formatTime(seconds) {
-        const minutes = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${minutes}:${secs.toString().padStart(2, '0')}`;
-    }
-
-    // Initialize duration display
-    wavesurfer.on('ready', () => {
-        document.getElementById('duration').textContent = formatTime(wavesurfer.getDuration());
-    });
-</script>
-@endpush
+        // ── Helpers ─────────────────────────────────────────────────────────
+        function fmt(s) {
+            if (!s || isNaN(s)) return '0:00';
+            const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+            return m + ':' + String(sec).padStart(2, '0');
+        }
+    })();
+    </script>
+    @endpush
 </x-app-layout>
