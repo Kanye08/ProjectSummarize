@@ -252,7 +252,7 @@
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
-                mediaRecorder = new MediaRecorder(stream, { mimeType });
+                mediaRecorder = new MediaRecorder(stream, { mimeType, audioBitsPerSecond: 64000 });
                 audioChunks = [];
                 recordingStart = Date.now();
                 mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
