@@ -46,6 +46,7 @@ Route::get('/system/run-queue', function () {
     Route::resource('meetings', MeetingController::class);
     
     Route::get('/meetings/{meeting}/audio', [MeetingController::class, 'audio'])->name('meetings.audio');
+    Route::get('/meetings/{meeting}/status', [MeetingController::class, 'status'])->name('meetings.status');
 
     // Transcripts
     Route::get('/meetings/{meeting}/transcript', [TranscriptionController::class, 'show'])->name('transcripts.show');

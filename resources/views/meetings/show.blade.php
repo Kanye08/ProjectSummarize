@@ -34,20 +34,22 @@
 
             {{-- ── Processing banner ─────────────────────────────────────── --}}
             @if(!in_array($meeting->processing_status, ['completed', 'failed']))
-                <div class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 mb-6 animate-pulse">
+                <div id="processingBanner" class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 mb-6 animate-pulse">
                     <div class="flex items-center">
                         <i class="fas fa-spinner fa-spin text-yellow-600 dark:text-yellow-400 mr-3"></i>
                         <div>
                             <p class="font-semibold text-yellow-800 dark:text-yellow-300">Processing in Progress</p>
                             <p class="text-sm text-yellow-700 dark:text-yellow-400">
-                                Status: <strong>{{ ucfirst($meeting->processing_status) }}</strong>.
-                                @if($meeting->processing_status === 'transcribing')
-                                    We're transcribing your audio. This usually takes 2–5 minutes.
-                                @elseif($meeting->processing_status === 'summarizing')
-                                    We're generating your summary and insights.
-                                @else
-                                    Your meeting is being processed.
-                                @endif
+                                Status: <strong id="processingStatusLabel">{{ ucfirst($meeting->processing_status) }}</strong>.
+                                <span id="processingStatusDetail">
+                                    @if($meeting->processing_status === 'transcribing')
+                                        We're transcribing your audio. This usually takes 2–5 minutes.
+                                    @elseif($meeting->processing_status === 'summarizing')
+                                        We're generating your summary and insights.
+                                    @else
+                                        Your meeting is being processed.
+                                    @endif
+                                </span>
                             </p>
                         </div>
                     </div>
@@ -814,6 +816,35 @@
             const m = Math.floor(s / 60), sec = Math.floor(s % 60);
             return m + ':' + String(sec).padStart(2, '0');
         }
+
+        // ── Live processing status polling ─────────────────────────────────
+        @if(!in_array($meeting->processing_status, ['completed', 'failed']))
+        const STATUS_MESSAGES = {
+            transcribing: "We're transcribing your audio. This usually takes 2–5 minutes.",
+            summarizing:  "We're generating your summary and insights.",
+        };
+
+        const statusLabelEl  = document.getElementById('processingStatusLabel');
+        const statusDetailEl = document.getElementById('processingStatusDetail');
+
+        const statusPoll = setInterval(async () => {
+            try {
+                const res  = await fetch('{{ route('meetings.status', $meeting) }}', { headers: { 'Accept': 'application/json' } });
+                const data = await res.json();
+
+                if (data.processing_status === 'completed' || data.processing_status === 'failed') {
+                    clearInterval(statusPoll);
+                    window.location.reload();
+                    return;
+                }
+
+                if (statusLabelEl)  statusLabelEl.textContent  = data.processing_status.charAt(0).toUpperCase() + data.processing_status.slice(1);
+                if (statusDetailEl) statusDetailEl.textContent = STATUS_MESSAGES[data.processing_status] ?? 'Your meeting is being processed.';
+            } catch (err) {
+                console.error('Status poll failed:', err);
+            }
+        }, 5000);
+        @endif
     })();
     </script>
     @endpush

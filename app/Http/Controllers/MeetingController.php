@@ -151,6 +151,18 @@ class MeetingController extends Controller
         return view('meetings.show', compact('meeting'));
     }
 
+    public function status(Meeting $meeting)
+    {
+        if ($meeting->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        return response()->json([
+            'processing_status' => $meeting->processing_status,
+            'error_message'     => $meeting->error_message,
+        ]);
+    }
+
     public function audio(Meeting $meeting)
     {
         if ($meeting->user_id !== auth()->id()) {
