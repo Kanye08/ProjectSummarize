@@ -97,6 +97,13 @@
 
                             <div id="waveform" class="mb-4 hidden"></div>
 
+                            <div id="basicPlayerWrap" class="mb-4 hidden">
+                                <p class="text-xs text-amber-600 dark:text-amber-400 mb-2">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>Waveform unavailable — using basic player.
+                                </p>
+                                <audio id="basicPlayer" class="w-full" controls preload="metadata" src="{{ $audioUrl }}"></audio>
+                            </div>
+
                             <div id="audioControls" class="hidden">
                                 <div class="flex items-center justify-between mb-4">
                                     <div class="flex items-center gap-4">
@@ -359,6 +366,38 @@
                                     <span class="text-xs font-medium text-gray-700 dark:text-gray-300">TXT</span>
                                 </button>
                             </form>
+
+                            @if($meeting->exports->isNotEmpty())
+                                <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 space-y-2">
+                                    @foreach($meeting->exports->sortByDesc('created_at') as $export)
+                                        <div class="flex items-center justify-between text-sm">
+                                            <span class="text-gray-600 dark:text-gray-400">
+                                                <i class="fas
+                                                    @if($export->format === 'pdf') fa-file-pdf text-red-500
+                                                    @elseif($export->format === 'docx') fa-file-word text-blue-500
+                                                    @else fa-file-alt text-gray-500
+                                                    @endif mr-2"></i>
+                                                {{ strtoupper($export->format) }}
+                                                <span class="text-xs text-gray-400 ml-1">{{ $export->created_at->diffForHumans() }}</span>
+                                            </span>
+
+                                            @if($export->status === 'completed')
+                                                <a href="{{ route('exports.download', $export) }}"
+                                                   class="text-blue-600 dark:text-blue-400 hover:underline text-xs font-medium">
+                                                    Download
+                                                </a>
+                                            @else
+                                                <span class="text-xs px-2 py-0.5 rounded-full
+                                                    @if($export->status === 'failed') bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400
+                                                    @else bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400
+                                                    @endif">
+                                                    {{ ucfirst($export->status) }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     @endif
 
@@ -550,8 +589,50 @@
         const KEY_DECISIONS = @json($keyDecisions);
         const SUMMARY_TEXT  = @json($summaryText);
 
-        // ── WaveSurfer ──────────────────────────────────────────────────────
+        // ── WaveSurfer (falls back to a native <audio> player on failure) ──
         @if($meeting->audio_file_path && $audioUrl)
+        const loadingState   = document.getElementById('loadingState');
+        const waveformEl     = document.getElementById('waveform');
+        const audioControls  = document.getElementById('audioControls');
+        const basicPlayerWrap= document.getElementById('basicPlayerWrap');
+        const basicPlayer    = document.getElementById('basicPlayer');
+        const playBtn        = document.getElementById('playPauseBtn');
+        const currentTimeEl  = document.getElementById('currentTime');
+        const durationEl     = document.getElementById('duration');
+
+        let player = null; // unified interface: { playPause, getDuration, getCurrentTime, seekTo, setTime, setPlaybackRate, setVolume, on }
+        let usingFallback = false;
+
+        function useFallbackPlayer() {
+            if (usingFallback) return;
+            usingFallback = true;
+            loadingState?.classList.add('hidden');
+            waveformEl?.classList.add('hidden');
+            basicPlayerWrap?.classList.remove('hidden');
+            audioControls?.classList.remove('hidden');
+
+            basicPlayer.addEventListener('loadedmetadata', () => {
+                if (durationEl) durationEl.textContent = fmt(basicPlayer.duration);
+            });
+            basicPlayer.addEventListener('timeupdate', () => {
+                if (currentTimeEl) currentTimeEl.textContent = fmt(basicPlayer.currentTime);
+                highlightSegment(basicPlayer.currentTime);
+            });
+            basicPlayer.addEventListener('play',  () => { if (playBtn) playBtn.innerHTML = '<i class="fas fa-pause"></i>'; });
+            basicPlayer.addEventListener('pause', () => { if (playBtn) playBtn.innerHTML = '<i class="fas fa-play"></i>'; });
+
+            player = {
+                playPause: () => basicPlayer.paused ? basicPlayer.play() : basicPlayer.pause(),
+                play: () => basicPlayer.play(),
+                getDuration: () => basicPlayer.duration || 0,
+                getCurrentTime: () => basicPlayer.currentTime || 0,
+                seekTo: ratio => { basicPlayer.currentTime = ratio * (basicPlayer.duration || 0); },
+                setTime: t => { basicPlayer.currentTime = t; },
+                setPlaybackRate: r => { basicPlayer.playbackRate = r; },
+                setVolume: v => { basicPlayer.volume = v; },
+            };
+        }
+
         const wavesurfer = WaveSurfer.create({
             container:     '#waveform',
             waveColor:     '#3B82F6',
@@ -567,55 +648,58 @@
 
         wavesurfer.load(AUDIO_URL);
 
-        const playBtn      = document.getElementById('playPauseBtn');
-        const currentTimeEl = document.getElementById('currentTime');
-        const durationEl   = document.getElementById('duration');
-        const loadingState = document.getElementById('loadingState');
-        const waveformEl   = document.getElementById('waveform');
-        const audioControls= document.getElementById('audioControls');
-
         wavesurfer.on('loading', pct => {
             if (loadingState) loadingState.innerHTML =
                 `<i class="fas fa-spinner fa-spin text-2xl mb-2"></i><p class="text-sm">Loading audio… ${pct}%</p>`;
         });
 
         wavesurfer.on('ready', () => {
+            if (usingFallback) return;
             loadingState?.classList.add('hidden');
             waveformEl?.classList.remove('hidden');
             audioControls?.classList.remove('hidden');
             if (durationEl) durationEl.textContent = fmt(wavesurfer.getDuration());
+
+            player = {
+                playPause: () => wavesurfer.playPause(),
+                play: () => wavesurfer.play(),
+                getDuration: () => wavesurfer.getDuration(),
+                getCurrentTime: () => wavesurfer.getCurrentTime(),
+                seekTo: ratio => wavesurfer.seekTo(ratio),
+                setTime: t => wavesurfer.setTime(t),
+                setPlaybackRate: r => wavesurfer.setPlaybackRate(r),
+                setVolume: v => wavesurfer.setVolume(v),
+            };
+
+            wavesurfer.on('play',  () => { if (playBtn) playBtn.innerHTML = '<i class="fas fa-pause"></i>'; });
+            wavesurfer.on('pause', () => { if (playBtn) playBtn.innerHTML = '<i class="fas fa-play"></i>'; });
+            wavesurfer.on('timeupdate', t => {
+                if (currentTimeEl) currentTimeEl.textContent = fmt(t);
+                highlightSegment(t);
+            });
         });
 
         wavesurfer.on('error', err => {
-            console.error('WaveSurfer error:', err);
-            if (loadingState) loadingState.innerHTML =
-                `<i class="fas fa-exclamation-circle text-red-500 text-2xl mb-2"></i>
-                 <p class="text-sm text-red-500">Failed to load audio.</p>`;
+            console.error('WaveSurfer error, falling back to basic player:', err);
+            useFallbackPlayer();
         });
 
-        playBtn?.addEventListener('click', () => wavesurfer.playPause());
-
-        wavesurfer.on('play',  () => { if (playBtn) playBtn.innerHTML = '<i class="fas fa-pause"></i>'; });
-        wavesurfer.on('pause', () => { if (playBtn) playBtn.innerHTML = '<i class="fas fa-play"></i>'; });
-
-        wavesurfer.on('timeupdate', t => {
-            if (currentTimeEl) currentTimeEl.textContent = fmt(t);
-            highlightSegment(t);
-        });
+        playBtn?.addEventListener('click', () => player?.playPause());
 
         document.getElementById('playbackRate')?.addEventListener('change', e =>
-            wavesurfer.setPlaybackRate(parseFloat(e.target.value))
+            player?.setPlaybackRate(parseFloat(e.target.value))
         );
         document.getElementById('volumeControl')?.addEventListener('input', e =>
-            wavesurfer.setVolume(e.target.value / 100)
+            player?.setVolume(e.target.value / 100)
         );
 
         // Click transcript → seek
         document.querySelectorAll('.transcript-segment').forEach(seg => {
             seg.addEventListener('click', () => {
+                if (!player) return;
                 const t = parseFloat(seg.dataset.start);
-                const d = wavesurfer.getDuration();
-                if (d > 0) { wavesurfer.seekTo(t / d); wavesurfer.play(); }
+                const d = player.getDuration();
+                if (d > 0) { player.seekTo(t / d); player.play(); }
             });
         });
 
@@ -634,9 +718,10 @@
         // Keyboard shortcuts
         document.addEventListener('keydown', e => {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-            if (e.code === 'Space')       { e.preventDefault(); wavesurfer.playPause(); }
-            if (e.code === 'ArrowLeft')   { e.preventDefault(); wavesurfer.setTime(Math.max(0, wavesurfer.getCurrentTime() - 5)); }
-            if (e.code === 'ArrowRight')  { e.preventDefault(); wavesurfer.setTime(Math.min(wavesurfer.getDuration(), wavesurfer.getCurrentTime() + 5)); }
+            if (!player) return;
+            if (e.code === 'Space')       { e.preventDefault(); player.playPause(); }
+            if (e.code === 'ArrowLeft')   { e.preventDefault(); player.setTime(Math.max(0, player.getCurrentTime() - 5)); }
+            if (e.code === 'ArrowRight')  { e.preventDefault(); player.setTime(Math.min(player.getDuration(), player.getCurrentTime() + 5)); }
         });
         @endif
 

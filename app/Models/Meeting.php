@@ -59,8 +59,9 @@ class Meeting extends Model
                     now()->addHours(1)
                 );
             }
-            // For local storage
-            return Storage::url($this->audio_file_path);
+            // For local storage — served via a route so it works even
+            // if the public/storage symlink was never created on the host.
+            return route('meetings.audio', $this);
         }
         return null;
     }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark-mode">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -22,9 +22,9 @@
                 theme: {
                     extend: {
                         colors: {
-                            primary: '#0ea5e9',
-                            secondary: '#3b82f6',
-                            accent: '#06b6d4',
+                            primary: '#059669',
+                            secondary: '#0d9488',
+                            accent: '#22d3ee',
                         }
                     }
                 }
@@ -34,37 +34,39 @@
             * {
                 font-family: 'Figtree', sans-serif;
             }
+
+            [x-cloak] { display: none !important; }
             
             .gradient-bg {
-                background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+                background: linear-gradient(135deg, #059669 0%, #0d9488 50%, #22d3ee 100%);
             }
-            
+
             .gradient-bg-dark {
-                background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+                background: linear-gradient(135deg, #065f46 0%, #115e59 50%, #0e7490 100%);
             }
-            
+
             .text-primary {
-                color: #0ea5e9;
+                color: #059669;
             }
-            
+
             .bg-primary {
-                background-color: #0ea5e9;
+                background-color: #059669;
             }
-            
+
             .hover\:bg-primary:hover {
-                background-color: #0284c7;
+                background-color: #047857;
             }
-            
+
             .border-primary {
-                border-color: #0ea5e9;
+                border-color: #059669;
             }
-            
+
             .bg-secondary {
-                background-color: #3b82f6;
+                background-color: #0d9488;
             }
-            
+
             .bg-accent {
-                background-color: #06b6d4;
+                background-color: #22d3ee;
             }
             
             /* Smooth transitions for theme switching */
@@ -97,28 +99,28 @@
             }
             
             .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-                background: rgba(59, 130, 246, 0.5);
+                background: rgba(5, 150, 105, 0.5);
             }
-            
+
             .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                background: rgba(59, 130, 246, 0.7);
+                background: rgba(5, 150, 105, 0.7);
             }
-            
+
             /* Pagination dark mode */
             .dark .pagination a {
                 background-color: rgba(31, 41, 55, 0.8);
                 color: #d1d5db;
                 border-color: rgba(75, 85, 99, 0.5);
             }
-            
+
             .dark .pagination a:hover {
-                background-color: rgba(59, 130, 246, 0.2);
-                color: #60a5fa;
+                background-color: rgba(5, 150, 105, 0.2);
+                color: #34d399;
             }
-            
+
             .dark .pagination .active span {
-                background-color: rgba(59, 130, 246, 0.3);
-                color: #60a5fa;
+                background-color: rgba(5, 150, 105, 0.3);
+                color: #34d399;
             }
         </style>
         
@@ -126,36 +128,39 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="bg-gray-50 dark:bg-gray-900">
-        <div class="min-h-screen flex flex-col">
-            @include('layouts.navigation')
+        <div x-data="sidebarState()" x-init="init()" class="min-h-screen flex">
+            @include('layouts.sidebar')
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="header-separator">
-                    <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-                        <div class="bg-white dark:bg-gray-800 card-elevation rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
-                            {{ $header }}
+            <div class="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-in-out" :class="collapsed ? 'md:ml-16' : 'md:ml-64'">
+                @include('layouts.topbar')
+
+                <!-- Page Heading -->
+                @isset($header)
+                    <header class="header-separator">
+                        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+                            <div class="bg-white dark:bg-gray-800 card-elevation rounded-2xl p-6 border border-gray-200 dark:border-gray-700">
+                                {{ $header }}
+                            </div>
                         </div>
+                    </header>
+                @endisset
+
+                <!-- Page Content -->
+                <main class="flex-grow py-6">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        {{ $slot }}
                     </div>
-                </header>
-            @endisset
+                </main>
 
-            <!-- Page Content -->
-            <main class="flex-grow py-6">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {{ $slot }}
-                </div>
-            </main>
-
-            <!-- Minimal Dashboard Footer -->
-            <footer class="mt-auto bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-6">
+                <!-- Minimal Dashboard Footer -->
+                <footer class="mt-auto bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-6">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div class="flex items-center justify-between">
                         <!-- Left Section -->
                         <div class="flex items-center space-x-6">
                             <!-- Logo/Icon -->
                             <div class="flex items-center space-x-3">
-                                <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center">
+                                <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-600 to-cyan-600 flex items-center justify-center">
                                     <i class="fas fa-video text-white text-sm"></i>
                                 </div>
                                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Powered by Tritek Academy</span>
@@ -230,9 +235,10 @@
                         </div>
                     </div>
                 </div>
-            </footer>
+                </footer>
+            </div>
         </div>
-        
+
         <script>
             // Check for saved theme preference or default to light
             if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {

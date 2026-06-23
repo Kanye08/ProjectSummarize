@@ -7,9 +7,24 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\MeetingController;
 use App\Http\Controllers\TranscriptionController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::get('/system/run-queue', function () {
+    Artisan::call('queue:work', [
+        '--once' => true,
+        '--stop-when-empty' => true,
+        '--queue' => 'default',
+        '--no-interaction' => true,
+        '--quiet' => true,   
+    ]);
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Queue processed'
+    ]);
 });
 
 // Route::get('/dashboard', function () {
@@ -30,6 +45,8 @@ Route::get('/', function () {
     Route::post('/meetings/record/save', [MeetingController::class, 'saveRecording'])->name('meetings.record.save');
     Route::resource('meetings', MeetingController::class);
     
+    Route::get('/meetings/{meeting}/audio', [MeetingController::class, 'audio'])->name('meetings.audio');
+
     // Transcripts
     Route::get('/meetings/{meeting}/transcript', [TranscriptionController::class, 'show'])->name('transcripts.show');
     Route::get('/meetings/{meeting}/transcript/search', [TranscriptionController::class, 'search'])->name('transcripts.search');

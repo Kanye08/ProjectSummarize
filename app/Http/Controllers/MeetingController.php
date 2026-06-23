@@ -151,6 +151,24 @@ class MeetingController extends Controller
         return view('meetings.show', compact('meeting'));
     }
 
+    public function audio(Meeting $meeting)
+    {
+        if ($meeting->user_id !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        if (!$meeting->audio_file_path || !Storage::disk('public')->exists($meeting->audio_file_path)) {
+            abort(404, 'Audio file not found');
+        }
+
+        $path = Storage::disk('public')->path($meeting->audio_file_path);
+
+        return response()->file($path, [
+            'Content-Type' => Storage::disk('public')->mimeType($meeting->audio_file_path) ?: 'audio/webm',
+            'Accept-Ranges' => 'bytes',
+        ]);
+    }
+
     public function edit(Meeting $meeting)
     {
         if ($meeting->user_id !== auth()->id()) {

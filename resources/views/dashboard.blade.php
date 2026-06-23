@@ -22,8 +22,8 @@
                         <i class="fas fa-calendar-alt mr-2"></i>{{ now()->format('F j, Y') }}
                     </span>
                 </div>
-                <a href="{{ route('meetings.create') }}" 
-                   class="px-4 py-2 bg-primary hover:bg-blue-600 text-white font-medium rounded-lg transition duration-200 flex items-center">
+                <a href="{{ route('meetings.record') }}"
+                   class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-medium rounded-lg transition duration-200 flex items-center shadow-md">
                     <i class="fas fa-plus mr-2"></i> New Meeting
                 </a>
             </div>
@@ -34,7 +34,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Quick Stats -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-                <div class="bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg p-6 border border-blue-100 dark:border-gray-700">
+                <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-white/30 dark:border-gray-700/30 hover:shadow-xl transition-shadow">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-blue-600 dark:text-blue-300 uppercase tracking-wider">Meetings</p>
@@ -50,7 +50,7 @@
                     </div>
                 </div>
                 
-                <div class="bg-gradient-to-br from-green-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg p-6 border border-green-100 dark:border-gray-700">
+                <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-white/30 dark:border-gray-700/30 hover:shadow-xl transition-shadow">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-green-600 dark:text-green-300 uppercase tracking-wider">Transcriptions</p>
@@ -66,7 +66,7 @@
                     </div>
                 </div>
                 
-                <div class="bg-gradient-to-br from-purple-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg p-6 border border-purple-100 dark:border-gray-700">
+                <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-white/30 dark:border-gray-700/30 hover:shadow-xl transition-shadow">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-purple-600 dark:text-purple-300 uppercase tracking-wider">Storage</p>
@@ -82,7 +82,7 @@
                     </div>
                 </div>
                 
-                <div class="bg-gradient-to-br from-amber-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg p-6 border border-amber-100 dark:border-gray-700">
+                <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-white/30 dark:border-gray-700/30 hover:shadow-xl transition-shadow">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-amber-600 dark:text-amber-300 uppercase tracking-wider">Export Credits</p>
@@ -107,7 +107,7 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <a href="{{ route('meetings.record') }}" 
-                       class="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl p-5 border border-gray-200 dark:border-gray-700 hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
+                       class="group bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-xl p-5 border border-white/30 dark:border-gray-700/30 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-300 transform hover:-translate-y-1">
                         <div class="text-center">
                             <div class="p-4 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white inline-block mb-4 group-hover:shadow-lg">
                                 <i class="fas fa-video text-2xl"></i>
@@ -118,7 +118,7 @@
                     </a>
                     
                     <a href="{{ route('meetings.create') }}" 
-                       class="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl p-5 border border-gray-200 dark:border-gray-700 hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
+                       class="group bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-xl p-5 border border-white/30 dark:border-gray-700/30 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-300 transform hover:-translate-y-1">
                         <div class="text-center">
                             <div class="p-4 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white inline-block mb-4 group-hover:shadow-lg">
                                 <i class="fas fa-cloud-upload-alt text-2xl"></i>
@@ -129,7 +129,7 @@
                     </a>
                     
                     <a href="{{ route('meetings.index') }}" 
-                       class="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl p-5 border border-gray-200 dark:border-gray-700 hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
+                       class="group bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-xl p-5 border border-white/30 dark:border-gray-700/30 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-300 transform hover:-translate-y-1">
                         <div class="text-center">
                             <div class="p-4 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 text-white inline-block mb-4 group-hover:shadow-lg">
                                 <i class="fas fa-file-alt text-2xl"></i>
@@ -140,7 +140,7 @@
                     </a>
                     
                     <a href="{{ route('exports.index') }}" 
-                       class="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl p-5 border border-gray-200 dark:border-gray-700 hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
+                       class="group bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-xl p-5 border border-white/30 dark:border-gray-700/30 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-300 transform hover:-translate-y-1">
                         <div class="text-center">
                             <div class="p-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-white inline-block mb-4 group-hover:shadow-lg">
                                 <i class="fas fa-file-export text-2xl"></i>
@@ -155,7 +155,7 @@
             <!-- Recent Activity & Upcoming Meetings -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Recent Meetings -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-white/30 dark:border-gray-700/30">
                     <div class="flex items-center justify-between mb-6">
                         <div>
                             <h3 class="text-xl font-bold text-gray-800 dark:text-white flex items-center">
@@ -163,7 +163,7 @@
                             </h3>
                             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Your latest meeting sessions</p>
                         </div>
-                        <a href="#" class="text-sm text-primary hover:text-blue-700 dark:hover:text-blue-300 font-medium">
+                        <a href="#" class="text-sm text-primary hover:text-emerald-700 dark:hover:text-emerald-300 font-medium">
                             View All
                         </a>
                     </div>
@@ -195,7 +195,7 @@
                                     </div>
                                 </div>
                                 <a href="{{ route('meetings.show', $meeting) }}" 
-                                   class="ml-4 text-primary hover:text-blue-700 dark:hover:text-blue-300">
+                                   class="ml-4 text-primary hover:text-emerald-700 dark:hover:text-emerald-300">
                                     <i class="fas fa-arrow-right"></i>
                                 </a>
                             </div>
@@ -207,7 +207,7 @@
                                 <p class="text-gray-500 dark:text-gray-400">No meetings yet</p>
                                 <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Start your first meeting to see it here</p>
                                 <a href="3" 
-                                   class="inline-block mt-4 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition">
+                                   class="inline-block mt-4 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition">
                                     Start Meeting
                                 </a>
                             </div>
@@ -218,7 +218,7 @@
                 <!-- Storage & Usage -->
                 <div class="space-y-6">
                     <!-- Storage Progress -->
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                    <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-white/30 dark:border-gray-700/30">
                         <h3 class="text-xl font-bold text-gray-800 dark:text-white flex items-center mb-6">
                             <i class="fas fa-hdd text-primary mr-3"></i>Storage Usage
                         </h3>
@@ -230,7 +230,7 @@
                                     <span class="text-sm font-bold text-blue-600 dark:text-blue-400">{{ $stats['storage_used'] ?? 0 }}GB / 50GB</span>
                                 </div>
                                 <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full" 
+                                    <div class="bg-gradient-to-r from-emerald-500 to-teal-600 h-3 rounded-full"
                                          style="width: {{ min(($stats['storage_used'] ?? 0) / 50 * 100, 100) }}%"></div>
                                 </div>
                             </div>
@@ -253,7 +253,7 @@
                     </div>
 
                     <!-- Quick Tips -->
-                    <div class="bg-gradient-to-r from-blue-500 to-blue-700 rounded-2xl shadow-xl p-6 text-white">
+                    <div class="bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 rounded-2xl shadow-xl p-6 text-white">
                         <h3 class="text-xl font-bold mb-4 flex items-center">
                             <i class="fas fa-lightbulb mr-3"></i>Quick Tips
                         </h3>

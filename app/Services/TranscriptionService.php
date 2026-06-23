@@ -8,70 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class TranscriptionService
 {
-    // public function transcribe($audioPath)
-    // {
-    //     try {
-    //         // Get file from storage
-    //         $audioContent = Storage::get($audioPath);
-    //         $tempPath = storage_path('app/temp/' . basename($audioPath));
-            
-    //         // Ensure temp directory exists
-    //         if (!file_exists(dirname($tempPath))) {
-    //             mkdir(dirname($tempPath), 0755, true);
-    //         }
-            
-    //         file_put_contents($tempPath, $audioContent);
-
-    //         // Call Whisper API
-    //         $response = OpenAI::audio()->transcribe([
-    //             'model' => 'whisper-1',
-    //             'file' => fopen($tempPath, 'r'),
-    //             'response_format' => 'verbose_json',
-    //             'timestamp_granularities' => ['segment'],
-    //         ]);
-
-    //         // Clean up temp file
-    //         unlink($tempPath);
-
-    //         // Process response
-    //         $segments = [];
-    //         $fullText = '';
-
-    //         if (isset($response->segments)) {
-    //             foreach ($response->segments as $index => $segment) {
-    //                 $segments[] = [
-    //                     'id' => $index,
-    //                     'text' => $segment->text,
-    //                     'start' => $segment->start,
-    //                     'end' => $segment->end,
-    //                     'speaker' => null, 
-    //                 ];
-    //                 $fullText .= $segment->text . ' ';
-    //             }
-    //         } else {
-    //             $fullText = $response->text;
-    //             $segments[] = [
-    //                 'id' => 0,
-    //                 'text' => $fullText,
-    //                 'start' => 0,
-    //                 'end' => 0,
-    //                 'speaker' => null,
-    //             ];
-    //         }
-
-    //         return [
-    //             'full_text' => trim($fullText),
-    //             'segments' => $segments,
-    //             'language' => $response->language ?? 'en',
-    //             'duration' => $response->duration ?? 0,
-    //         ];
-
-    //     } catch (\Exception $e) {
-    //         Log::error('Transcription failed: ' . $e->getMessage());
-    //         throw $e;
-    //     }
-    // }
-
+   
     public function transcribe($audioPath)
     {
         try {

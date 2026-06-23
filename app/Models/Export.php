@@ -31,7 +31,7 @@ class Export extends Model
                     now()->addHours(1)
                 );
             }
-            return Storage::url($this->file_path);
+            return route('exports.download', $this);
         }
         return null;
     }

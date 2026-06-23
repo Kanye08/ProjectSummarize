@@ -13,36 +13,23 @@
         }
         
         .gradient-bg {
-            background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+            background: linear-gradient(135deg, #059669 0%, #0d9488 50%, #0891b2 100%);
         }
-        
+
         .gradient-bg-dark {
-            background: linear-gradient(135deg, #0369a1 0%, #1d4ed8 100%);
+            background: linear-gradient(135deg, #065f46 0%, #115e59 50%, #155e75 100%);
         }
-        
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
         .feature-card:hover {
             transform: translateY(-5px);
             transition: transform 0.3s ease;
-            box-shadow: 0 10px 30px rgba(14, 165, 233, 0.1);
-        }
-        
-        .upload-progress-bar {
-            height: 8px;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .upload-progress-fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.5s ease;
-        }
-        
-        .playback-highlight {
-            background-color: rgba(14, 165, 233, 0.15);
-            border-left: 3px solid #0ea5e9;
-            padding-left: 8px;
-            transition: background-color 0.3s;
+            box-shadow: 0 10px 30px rgba(5, 150, 105, 0.15);
         }
         
         .auth-link {
@@ -51,52 +38,58 @@
             border-radius: 0.375rem;
             transition: all 0.3s;
         }
-        
+
         .auth-link:hover {
-            background-color: rgba(14, 165, 233, 0.1);
+            background-color: rgba(5, 150, 105, 0.1);
         }
-        
+
         .auth-link.active {
-            background-color: rgba(14, 165, 233, 0.15);
+            background-color: rgba(5, 150, 105, 0.15);
             font-weight: 500;
         }
-        
+
         .text-primary {
-            color: #0ea5e9;
+            color: #059669;
         }
-        
+
         .bg-primary {
-            background-color: #0ea5e9;
+            background-color: #059669;
         }
-        
+
         .hover\:bg-primary:hover {
-            background-color: #0284c7;
+            background-color: #047857;
         }
-        
+
         .border-primary {
-            border-color: #0ea5e9;
+            border-color: #059669;
         }
-        
+
         .text-secondary {
-            color: #3b82f6;
+            color: #0d9488;
         }
-        
+
         .bg-secondary {
-            background-color: #3b82f6;
+            background-color: #0d9488;
         }
-        
+
         .text-accent {
-            color: #06b6d4;
+            color: #22d3ee;
         }
-        
+
         .bg-accent {
-            background-color: #06b6d4;
+            background-color: #22d3ee;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
     </style>
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
-    <nav class="bg-white shadow-md fixed w-full z-10 py-4">
+    <nav class="bg-white/80 backdrop-blur-md shadow-md fixed w-full z-10 py-4">
         <div class="container mx-auto px-4 flex justify-between items-center">
             <div class="flex items-center">
                 <div class="flex items-center">
@@ -146,7 +139,7 @@
                     </a>
                     
                     @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="bg-primary hover:bg-blue-500 text-white px-5 py-2 rounded-lg font-medium transition duration-300 hidden md:block">
+                        <a href="{{ route('register') }}" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-5 py-2 rounded-lg font-medium transition duration-300 hidden md:block">
                             <i class="fas fa-user-plus mr-2"></i>Register
                         </a>
                     @endif
@@ -192,70 +185,69 @@
                     <p class="mt-6 text-blue-200">No credit card required • 14-day free trial</p>
                 </div>
                 <div class="md:w-1/2 flex justify-center">
-                    <div class="bg-white rounded-xl shadow-2xl p-6 max-w-lg w-full">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-xl font-bold text-gray-800">Upload & Transcribe</h3>
-                            <span class="bg-green-100 text-green-800 text-xs font-medium px-3 py-1 rounded-full">Live Demo</span>
-                        </div>
-                        
-                        <!-- Upload Demo -->
-                        <div class="mb-6 border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition duration-300">
-                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-4"></i>
-                            <p class="text-gray-600 font-medium">Drag & drop your meeting recording here</p>
-                            <p class="text-gray-500 text-sm mt-2">Supports MP3, MP4, WAV, and more</p>
-                            
-                            @auth
-                                <button class="mt-4 bg-primary hover:bg-blue-500 text-white px-5 py-2 rounded-lg font-medium">
-                                    <i class="fas fa-upload mr-2"></i>Upload File
-                                </button>
-                            @else
-                                <a href="{{ route('login') }}" class="mt-4 inline-block bg-primary hover:bg-blue-500 text-white px-5 py-2 rounded-lg font-medium">
-                                    <i class="fas fa-sign-in-alt mr-2"></i>Log In to Upload
-                                </a>
-                            @endauth
-                        </div>
-                        
-                        <!-- Upload Progress Demo -->
-                        <div class="mb-6">
-                            <div class="flex justify-between mb-2">
-                                <span class="text-gray-700 font-medium">sales-meeting.mp4</span>
-                                <span class="text-gray-500 text-sm">65%</span>
-                            </div>
-                            <div class="upload-progress-bar bg-gray-200">
-                                <div class="upload-progress-fill bg-green-500" style="width: 65%"></div>
-                            </div>
-                            <div class="flex justify-between mt-2">
-                                <span class="text-gray-500 text-sm">Uploading to your dashboard...</span>
-                                <button class="text-red-500 hover:text-red-700 text-sm font-medium">
-                                    <i class="fas fa-times mr-1"></i> Cancel
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <!-- Transcription Preview -->
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <h4 class="font-bold text-gray-800 mb-3">Transcription Preview</h4>
-                            <div class="h-40 overflow-y-auto text-sm">
-                                <p class="mb-2"><span class="font-medium text-primary">[00:01:23] John:</span> So about the Q3 projections...</p>
-                                <p class="mb-2 play-back-highlight"><span class="font-medium text-primary">[00:01:45] Sarah:</span> I think we can aim for 15% growth.</p>
-                                <p class="mb-2"><span class="font-medium text-primary">[00:02:10] Mike:</span> That's ambitious but achievable with the new campaign.</p>
-                                <p class="mb-2"><span class="font-medium text-primary">[00:02:45] John:</span> Let's sync text with audio playback to review...</p>
-                                <p class="mb-2"><span class="font-medium text-primary">[00:03:15] Sarah:</span> We can export the transcript as PDF or Excel.</p>
-                            </div>
-                            <div class="mt-3 flex items-center justify-between">
-                                <div class="flex items-center">
-                                    <button class="text-primary mr-4">
-                                        <i class="fas fa-play-circle text-xl"></i>
-                                    </button>
-                                    <span class="text-gray-600 text-sm">00:02:15 / 00:12:45</span>
+                    <div class="relative max-w-lg w-full">
+                        <!-- Decorative glow -->
+                        <div class="absolute -top-8 -right-8 w-40 h-40 bg-cyan-300/40 rounded-full blur-3xl"></div>
+                        <div class="absolute -bottom-8 -left-8 w-40 h-40 bg-emerald-300/40 rounded-full blur-3xl"></div>
+
+                        <div class="relative bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/40 p-6">
+                            <!-- Header -->
+                            <div class="flex justify-between items-center mb-5">
+                                <div class="flex items-center gap-2">
+                                    <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    <h3 class="text-base font-bold text-gray-800">Sales Sync — Q3 Review</h3>
                                 </div>
-                                <div class="flex space-x-2">
-                                    <button class="text-gray-600 hover:text-primary text-sm">
-                                        <i class="fas fa-file-pdf mr-1"></i> PDF
+                                <span class="bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full">
+                                    <i class="fas fa-circle text-[6px] mr-1 align-middle"></i>Live
+                                </span>
+                            </div>
+
+                            <!-- Mini waveform player -->
+                            <div class="bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 rounded-xl p-4 mb-5">
+                                <div class="flex items-center gap-3">
+                                    <button class="h-9 w-9 rounded-full bg-white/90 text-emerald-700 flex items-center justify-center shrink-0 shadow">
+                                        <i class="fas fa-play text-sm"></i>
                                     </button>
-                                    <button class="text-gray-600 hover:text-primary text-sm">
-                                        <i class="fas fa-file-excel mr-1"></i> Excel
-                                    </button>
+                                    <div class="flex items-end gap-[3px] h-8 flex-1 overflow-hidden">
+                                        @php $bars = [40,65,30,80,55,90,45,70,35,60,85,50,75,40,65,30,55,80,45,60,35,70,50,85,40]; @endphp
+                                        @foreach($bars as $i => $h)
+                                            <span class="w-[3px] rounded-full {{ $i < 9 ? 'bg-white' : 'bg-white/40' }}" style="height: {{ $h }}%"></span>
+                                        @endforeach
+                                    </div>
+                                    <span class="text-white text-xs font-mono shrink-0">0:42 / 12:45</span>
+                                </div>
+                            </div>
+
+                            <!-- Transcript snippet -->
+                            <div class="space-y-2.5 mb-5">
+                                <p class="text-sm text-gray-500">
+                                    <span class="font-mono text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded mr-2">00:01</span>
+                                    So about the Q3 projections...
+                                </p>
+                                <p class="text-sm text-gray-800 font-medium bg-emerald-50 border-l-2 border-emerald-500 pl-3 py-1.5 rounded-r">
+                                    <span class="font-mono text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded mr-2">00:42</span>
+                                    "I think we can aim for 15% growth this quarter."
+                                </p>
+                                <p class="text-sm text-gray-500">
+                                    <span class="font-mono text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded mr-2">01:10</span>
+                                    That's ambitious but achievable...
+                                </p>
+                            </div>
+
+                            <!-- Insight teaser chips -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-white rounded-xl p-3 border border-gray-100 shadow-sm">
+                                    <p class="text-xs font-semibold text-gray-500 mb-1"><i class="fas fa-lightbulb text-amber-500 mr-1"></i>AI Summary</p>
+                                    <p class="text-xs text-gray-700 leading-relaxed">Team aligned on 15% growth target for Q3.</p>
+                                </div>
+                                <div class="bg-white rounded-xl p-3 border border-gray-100 shadow-sm">
+                                    <p class="text-xs font-semibold text-gray-500 mb-1"><i class="fas fa-chart-pie text-emerald-500 mr-1"></i>Sentiment</p>
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex-1 bg-gray-100 rounded-full h-1.5">
+                                            <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 82%"></div>
+                                        </div>
+                                        <span class="text-xs font-bold text-emerald-600">82%</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -266,18 +258,20 @@
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="py-16 bg-white">
-        <div class="container mx-auto px-4">
+    <section id="features" class="py-16 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 relative overflow-hidden">
+        <div class="absolute -top-24 -right-24 w-96 h-96 bg-emerald-300/30 rounded-full blur-3xl"></div>
+        <div class="absolute top-1/2 -left-24 w-96 h-96 bg-cyan-300/20 rounded-full blur-3xl"></div>
+        <div class="container mx-auto px-4 relative">
             <div class="text-center mb-12">
                 <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">AI-Powered Meeting Intelligence</h2>
                 <p class="text-gray-600 text-lg max-w-3xl mx-auto">Everything you need to capture, analyze, and act on your meeting discussions</p>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <!-- Feature 1 -->
-                <div class="feature-card bg-gray-50 rounded-xl p-6 shadow-md">
-                    <div class="text-primary mb-4">
-                        <i class="fas fa-video text-3xl"></i>
+                <div class="feature-card rounded-xl p-6 shadow-lg">
+                    <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center mb-4">
+                        <i class="fas fa-video text-2xl text-white"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-3">Start & Record Meetings</h3>
                     <p class="text-gray-600 mb-4">Start meetings directly from the platform or upload existing recordings. Supports all major formats.</p>
@@ -298,9 +292,9 @@
                 </div>
                 
                 <!-- Feature 2 -->
-                <div class="feature-card bg-gray-50 rounded-xl p-6 shadow-md">
-                    <div class="text-primary mb-4">
-                        <i class="fas fa-file-audio text-3xl"></i>
+                <div class="feature-card rounded-xl p-6 shadow-lg">
+                    <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mb-4">
+                        <i class="fas fa-file-audio text-2xl text-white"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-3">AI Audio Transcription</h3>
                     <p class="text-gray-600 mb-4">Automatic, accurate transcription with speaker identification. Edit and correct transcripts easily.</p>
@@ -321,9 +315,9 @@
                 </div>
                 
                 <!-- Feature 3 -->
-                <div class="feature-card bg-gray-50 rounded-xl p-6 shadow-md">
-                    <div class="text-primary mb-4">
-                        <i class="fas fa-sync-alt text-3xl"></i>
+                <div class="feature-card rounded-xl p-6 shadow-lg">
+                    <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center mb-4">
+                        <i class="fas fa-sync-alt text-2xl text-white"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-3">Audio-Text Sync Playback</h3>
                     <p class="text-gray-600 mb-4">Play audio with synchronized text highlighting, just like Otter.ai. Click text to jump to that moment.</p>
@@ -344,9 +338,9 @@
                 </div>
                 
                 <!-- Feature 4 -->
-                <div class="feature-card bg-gray-50 rounded-xl p-6 shadow-md">
-                    <div class="text-primary mb-4">
-                        <i class="fas fa-tasks text-3xl"></i>
+                <div class="feature-card rounded-xl p-6 shadow-lg">
+                    <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center mb-4">
+                        <i class="fas fa-tasks text-2xl text-white"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-3">Upload Progress & Control</h3>
                     <p class="text-gray-600 mb-4">Track upload progress in real-time. Pause, resume, or cancel uploads as needed.</p>
@@ -367,9 +361,9 @@
                 </div>
                 
                 <!-- Feature 5 -->
-                <div class="feature-card bg-gray-50 rounded-xl p-6 shadow-md">
-                    <div class="text-primary mb-4">
-                        <i class="fas fa-file-contract text-3xl"></i>
+                <div class="feature-card rounded-xl p-6 shadow-lg">
+                    <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mb-4">
+                        <i class="fas fa-file-contract text-2xl text-white"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-3">AI Summary Generation</h3>
                     <p class="text-gray-600 mb-4">Automatically generate concise meeting summaries, action items, and key decisions.</p>
@@ -390,9 +384,9 @@
                 </div>
                 
                 <!-- Feature 6 -->
-                <div class="feature-card bg-gray-50 rounded-xl p-6 shadow-md">
-                    <div class="text-primary mb-4">
-                        <i class="fas fa-download text-3xl"></i>
+                <div class="feature-card rounded-xl p-6 shadow-lg">
+                    <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center mb-4">
+                        <i class="fas fa-download text-2xl text-white"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-3">Export & Share</h3>
                     <p class="text-gray-600 mb-4">Export transcripts, summaries, and analytics in multiple formats for sharing and archiving.</p>
@@ -418,11 +412,11 @@
                 <h3 class="text-2xl font-bold text-gray-800 mb-6">Ready to experience these features?</h3>
                 <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
                     @auth
-                        <a href="{{ route('dashboard') }}" class="bg-primary hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-lg transition duration-300">
+                        <a href="{{ route('dashboard') }}" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300">
                             <i class="fas fa-tachometer-alt mr-2"></i>Go to Dashboard
                         </a>
                     @else
-                        <a href="{{ route('register') }}" class="bg-primary hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-lg transition duration-300">
+                        <a href="{{ route('register') }}" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold py-3 px-8 rounded-lg transition duration-300">
                             <i class="fas fa-user-plus mr-2"></i>Create Free Account
                         </a>
                         <a href="{{ route('login') }}" class="bg-white border-2 border-primary text-primary hover:bg-blue-50 font-bold py-3 px-8 rounded-lg transition duration-300">
@@ -435,66 +429,72 @@
     </section>
 
     <!-- How It Works Section -->
-    <section id="how-it-works" class="py-16 bg-gray-50">
-        <div class="container mx-auto px-4">
+    <section id="how-it-works" class="py-16 bg-gradient-to-br from-cyan-50 via-white to-emerald-50 relative overflow-hidden">
+        <div class="absolute top-0 left-1/4 w-96 h-96 bg-cyan-300/25 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-1/4 w-96 h-96 bg-emerald-300/25 rounded-full blur-3xl"></div>
+
+        <div class="container mx-auto px-4 relative">
             <div class="text-center mb-12">
                 <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">How SummarAIze Works</h2>
                 <p class="text-gray-600 text-lg max-w-3xl mx-auto">Transform your meetings in just four simple steps</p>
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="text-center">
-                    <div class="bg-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-md">
-                        <span class="gradient-bg text-white font-bold text-2xl rounded-full w-12 h-12 flex items-center justify-center">1</span>
+
+            <div class="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Connecting line (desktop only) -->
+                <div class="hidden lg:block absolute top-10 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-300 via-teal-300 to-cyan-300 mx-20"></div>
+
+                <div class="relative text-center group">
+                    <div class="relative bg-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg ring-4 ring-white group-hover:-translate-y-1 transition-transform duration-300">
+                        <span class="bg-gradient-to-br from-emerald-600 to-teal-600 text-white font-bold text-2xl rounded-full w-12 h-12 flex items-center justify-center">1</span>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-3">Start or Upload</h3>
                     <p class="text-gray-600">Start a new meeting or upload existing recordings from any device.</p>
                 </div>
-                
-                <div class="text-center">
-                    <div class="bg-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-md">
-                        <span class="gradient-bg text-white font-bold text-2xl rounded-full w-12 h-12 flex items-center justify-center">2</span>
+
+                <div class="relative text-center group">
+                    <div class="relative bg-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg ring-4 ring-white group-hover:-translate-y-1 transition-transform duration-300">
+                        <span class="bg-gradient-to-br from-teal-600 to-cyan-600 text-white font-bold text-2xl rounded-full w-12 h-12 flex items-center justify-center">2</span>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-3">AI Processing</h3>
                     <p class="text-gray-600">Our AI transcribes audio, identifies speakers, and syncs text with audio.</p>
                 </div>
-                
-                <div class="text-center">
-                    <div class="bg-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-md">
-                        <span class="gradient-bg text-white font-bold text-2xl rounded-full w-12 h-12 flex items-center justify-center">3</span>
+
+                <div class="relative text-center group">
+                    <div class="relative bg-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg ring-4 ring-white group-hover:-translate-y-1 transition-transform duration-300">
+                        <span class="bg-gradient-to-br from-cyan-600 to-emerald-600 text-white font-bold text-2xl rounded-full w-12 h-12 flex items-center justify-center">3</span>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-3">Review & Edit</h3>
                     <p class="text-gray-600">Playback with synchronized text, edit transcripts, and generate summaries.</p>
                 </div>
-                
-                <div class="text-center">
-                    <div class="bg-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-md">
-                        <span class="gradient-bg text-white font-bold text-2xl rounded-full w-12 h-12 flex items-center justify-center">4</span>
+
+                <div class="relative text-center group">
+                    <div class="relative bg-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg ring-4 ring-white group-hover:-translate-y-1 transition-transform duration-300">
+                        <span class="bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 text-white font-bold text-2xl rounded-full w-12 h-12 flex items-center justify-center">4</span>
                     </div>
                     <h3 class="text-xl font-bold text-gray-800 mb-3">Export & Share</h3>
                     <p class="text-gray-600">Export in multiple formats, share with your team, and track action items.</p>
                 </div>
             </div>
-            
-            <div class="mt-12 bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto">
+
+            <div class="mt-12 bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg border border-white/50 p-8 max-w-4xl mx-auto">
                 <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">Export Options</h3>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <div class="border border-gray-200 rounded-lg p-4 text-center hover:border-primary transition duration-300">
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-100 hover:border-emerald-400 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                         <i class="fas fa-file-pdf text-3xl text-red-500 mb-3"></i>
                         <h4 class="font-bold text-gray-800">PDF</h4>
                         <p class="text-gray-600 text-sm">Formatted transcript with timestamps</p>
                     </div>
-                    <div class="border border-gray-200 rounded-lg p-4 text-center hover:border-primary transition duration-300">
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-100 hover:border-emerald-400 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                         <i class="fas fa-file-excel text-3xl text-green-500 mb-3"></i>
                         <h4 class="font-bold text-gray-800">Excel</h4>
                         <p class="text-gray-600 text-sm">Structured data for analysis</p>
                     </div>
-                    <div class="border border-gray-200 rounded-lg p-4 text-center hover:border-primary transition duration-300">
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-100 hover:border-emerald-400 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                         <i class="fas fa-file-word text-3xl text-blue-500 mb-3"></i>
                         <h4 class="font-bold text-gray-800">Word</h4>
                         <p class="text-gray-600 text-sm">Editable document format</p>
                     </div>
-                    <div class="border border-gray-200 rounded-lg p-4 text-center hover:border-primary transition duration-300">
+                    <div class="bg-white rounded-lg p-4 text-center border border-gray-100 hover:border-emerald-400 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
                         <i class="fas fa-file-csv text-3xl text-yellow-500 mb-3"></i>
                         <h4 class="font-bold text-gray-800">CSV</h4>
                         <p class="text-gray-600 text-sm">Raw data for custom processing</p>
@@ -505,15 +505,15 @@
     </section>
 
     <!-- Testimonials Section -->
-    <section id="testimonials" class="py-16 bg-white">
+    <section id="testimonials" class="py-16 bg-gradient-to-br from-teal-50 via-white to-emerald-50">
         <div class="container mx-auto px-4">
             <div class="text-center mb-12">
                 <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Trusted by Teams Worldwide</h2>
                 <p class="text-gray-600 text-lg max-w-3xl mx-auto">See what professionals are saying about SummarAIze</p>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="bg-gray-50 rounded-xl p-6 shadow-md">
+                <div class="glass-card rounded-xl p-6 shadow-lg">
                     <div class="flex items-center mb-4">
                         <div class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white font-bold text-lg mr-4">
                             SJ
@@ -533,7 +533,7 @@
                     </div>
                 </div>
                 
-                <div class="bg-gray-50 rounded-xl p-6 shadow-md">
+                <div class="glass-card rounded-xl p-6 shadow-lg">
                     <div class="flex items-center mb-4">
                         <div class="w-12 h-12 rounded-full bg-accent flex items-center justify-center text-white font-bold text-lg mr-4">
                             MR
@@ -553,7 +553,7 @@
                     </div>
                 </div>
                 
-                <div class="bg-gray-50 rounded-xl p-6 shadow-md">
+                <div class="glass-card rounded-xl p-6 shadow-lg">
                     <div class="flex items-center mb-4">
                         <div class="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-white font-bold text-lg mr-4">
                             EC
@@ -654,31 +654,7 @@
     </footer>
 
     <script>
-        // Simple script to demonstrate interactive features
         document.addEventListener('DOMContentLoaded', function() {
-            // Upload progress animation for demo
-            const progressFill = document.querySelector('.upload-progress-fill');
-            if (progressFill) {
-                let width = 65;
-                
-                const progressInterval = setInterval(() => {
-                    if (width < 100) {
-                        width += 1;
-                        progressFill.style.width = width + '%';
-                    } else {
-                        clearInterval(progressInterval);
-                    }
-                }, 500);
-            }
-            
-            // Toggle playback highlight for demo
-            const playbackText = document.querySelector('.play-back-highlight');
-            if (playbackText) {
-                setInterval(() => {
-                    playbackText.classList.toggle('playback-highlight');
-                }, 2000);
-            }
-            
             // Mobile menu toggle
             const mobileMenuButton = document.getElementById('mobile-menu-button');
             const mobileMenu = document.getElementById('mobile-menu');

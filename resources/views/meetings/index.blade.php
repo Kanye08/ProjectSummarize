@@ -9,7 +9,7 @@
                     Manage and review your meeting recordings
                 </p>
             </div>
-            <a href="{{ route('meetings.create') }}" class="px-4 py-2 bg-primary hover:bg-blue-600 text-white font-medium rounded-lg transition">
+            <a href="{{ route('meetings.create') }}" class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-medium rounded-lg transition shadow-md">
                 <i class="fas fa-plus mr-2"></i>Upload New Meeting
             </a>
         </div>
@@ -30,9 +30,9 @@
             @if($meetings->count() > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach($meetings as $meeting)
-                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all border border-gray-200 dark:border-gray-700 overflow-hidden">
+                        <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-xl transition-all border border-white/30 dark:border-gray-700/30 overflow-hidden">
                             <!-- Status Badge -->
-                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-4">
+                            <div class="bg-gradient-to-r from-emerald-600 to-teal-600 p-4">
                                 <div class="flex items-center justify-between text-white">
                                     <span class="text-xs font-semibold px-3 py-1 rounded-full 
                                         @if($meeting->processing_status === 'completed') bg-green-500
@@ -81,8 +81,8 @@
 
                                 <!-- Action Buttons -->
                                 <div class="flex gap-2">
-                                    <a href="{{ route('meetings.show', $meeting) }}" 
-                                       class="flex-1 px-4 py-2 bg-primary hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition text-center">
+                                    <a href="{{ route('meetings.show', $meeting) }}"
+                                       class="flex-1 px-4 py-2 bg-primary hover:bg-emerald-700 text-white text-sm font-medium rounded-lg transition text-center">
                                         <i class="fas fa-eye mr-1"></i>View
                                     </a>
                                     @if($meeting->processing_status === 'completed')
@@ -104,13 +104,13 @@
             @else
                 <!-- Empty State -->
                 <div class="text-center py-16">
-                    <div class="inline-block p-8 rounded-full bg-blue-50 dark:bg-blue-900/30 mb-6">
-                        <i class="fas fa-video-slash text-6xl text-blue-500 dark:text-blue-400"></i>
+                    <div class="inline-block p-8 rounded-full bg-emerald-50 dark:bg-emerald-900/30 mb-6">
+                        <i class="fas fa-video-slash text-6xl text-emerald-500 dark:text-emerald-400"></i>
                     </div>
                     <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">No Meetings Yet</h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-6">Upload your first meeting recording to get started</p>
-                    <a href="{{ route('meetings.create') }}" 
-                       class="inline-block px-6 py-3 bg-primary hover:bg-blue-600 text-white font-medium rounded-lg transition">
+                    <a href="{{ route('meetings.create') }}"
+                       class="inline-block px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-medium rounded-lg transition shadow-md">
                         <i class="fas fa-plus mr-2"></i>Upload Meeting
                     </a>
                 </div>

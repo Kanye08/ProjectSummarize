@@ -3,7 +3,7 @@
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div>
                 <div class="flex items-center mb-3">
-                    <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center mr-4">
+                    <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center mr-4">
                         <i class="fas fa-shield-alt text-white text-xl"></i>
                     </div>
                     <div>
@@ -25,7 +25,7 @@
             </div>
             
             <div class="flex flex-col sm:flex-row gap-3">
-                <div class="px-4 py-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center space-x-3">
+                <div class="px-4 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-xl border border-white/30 dark:border-gray-700/30 shadow-sm flex items-center space-x-3">
                     <div class="h-10 w-10 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
                         <i class="fas fa-calendar-alt text-primary"></i>
                     </div>
@@ -35,7 +35,7 @@
                     </div>
                 </div>
                 
-                <div class="px-4 py-3 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center space-x-3">
+                <div class="px-4 py-3 bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-xl border border-white/30 dark:border-gray-700/30 shadow-sm flex items-center space-x-3">
                     <div class="h-10 w-10 rounded-lg bg-green-50 dark:bg-green-900/30 flex items-center justify-center">
                         <i class="fas fa-circle text-green-500"></i>
                     </div>
@@ -52,23 +52,23 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <div class="bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-xl p-6 border border-blue-100 dark:border-gray-700 transform hover:scale-[1.02] transition-all duration-300">
+                <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/30 dark:border-gray-700/30 transform hover:scale-[1.02] transition-all duration-300">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-blue-600 dark:text-blue-300 uppercase tracking-wider">Total Users</p>
+                            <p class="text-sm font-medium text-emerald-600 dark:text-emerald-300 uppercase tracking-wider">Total Users</p>
                             <p class="text-4xl font-bold text-gray-800 dark:text-white mt-2">{{ $stats['total_users'] }}</p>
                             <div class="flex items-center mt-4">
                                 <i class="fas fa-arrow-up text-green-500 mr-2"></i>
                                 <span class="text-sm text-gray-600 dark:text-gray-300">+12% from last month</span>
                             </div>
                         </div>
-                        <div class="p-4 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+                        <div class="p-4 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white">
                             <i class="fas fa-users text-2xl"></i>
                         </div>
                     </div>
                 </div>
-                
-                <div class="bg-gradient-to-br from-cyan-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-xl p-6 border border-cyan-100 dark:border-gray-700 transform hover:scale-[1.02] transition-all duration-300">
+
+                <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/30 dark:border-gray-700/30 transform hover:scale-[1.02] transition-all duration-300">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-cyan-600 dark:text-cyan-300 uppercase tracking-wider">Total Meetings</p>
@@ -84,17 +84,17 @@
                     </div>
                 </div>
                 
-                <div class="bg-gradient-to-br from-indigo-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-xl p-6 border border-indigo-100 dark:border-gray-700 transform hover:scale-[1.02] transition-all duration-300">
+                <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/30 dark:border-gray-700/30 transform hover:scale-[1.02] transition-all duration-300">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-indigo-600 dark:text-indigo-300 uppercase tracking-wider">Active Users</p>
+                            <p class="text-sm font-medium text-teal-600 dark:text-teal-300 uppercase tracking-wider">Active Users</p>
                             <p class="text-4xl font-bold text-gray-800 dark:text-white mt-2">{{ $stats['active_users'] }}</p>
                             <div class="flex items-center mt-4">
                                 <i class="fas fa-arrow-up text-green-500 mr-2"></i>
                                 <span class="text-sm text-gray-600 dark:text-gray-300">+8% from last month</span>
                             </div>
                         </div>
-                        <div class="p-4 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
+                        <div class="p-4 rounded-full bg-gradient-to-r from-teal-500 to-teal-600 text-white">
                             <i class="fas fa-chart-line text-2xl"></i>
                         </div>
                     </div>
@@ -114,7 +114,7 @@
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <a href="{{ route('admin.users') }}" 
-                       class="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl p-6 border border-gray-200 dark:border-gray-700 hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
+                       class="group bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-xl p-6 border border-white/30 dark:border-gray-700/30 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-300 transform hover:-translate-y-1">
                         <div class="flex items-start mb-4">
                             <div class="p-3 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 text-white mr-4 group-hover:shadow-lg transition-shadow">
                                 <i class="fas fa-user-cog text-xl"></i>
@@ -131,7 +131,7 @@
                     </a>
                     
                     <a href="{{ route('admin.activities') }}" 
-                       class="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl p-6 border border-gray-200 dark:border-gray-700 hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
+                       class="group bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-xl p-6 border border-white/30 dark:border-gray-700/30 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-300 transform hover:-translate-y-1">
                         <div class="flex items-start mb-4">
                             <div class="p-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 text-white mr-4 group-hover:shadow-lg transition-shadow">
                                 <i class="fas fa-history text-xl"></i>
@@ -148,7 +148,7 @@
                     </a>
                     
                     <a href="{{ route('admin.meetings.stats') }}" 
-                       class="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl p-6 border border-gray-200 dark:border-gray-700 hover:border-primary transition-all duration-300 transform hover:-translate-y-1">
+                       class="group bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-lg hover:shadow-xl p-6 border border-white/30 dark:border-gray-700/30 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-300 transform hover:-translate-y-1">
                         <div class="flex items-start mb-4">
                             <div class="p-3 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 text-white mr-4 group-hover:shadow-lg transition-shadow">
                                 <i class="fas fa-chart-bar text-xl"></i>
@@ -169,7 +169,7 @@
             <!-- Recent Activities & System Status -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Recent Activities -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-white/30 dark:border-gray-700/30">
                     <div class="flex items-center justify-between mb-6">
                         <div>
                             <h3 class="text-xl font-bold text-gray-800 dark:text-white flex items-center">
@@ -177,7 +177,7 @@
                             </h3>
                             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Latest user actions in the system</p>
                         </div>
-                        <a href="{{ route('admin.activities') }}" class="text-sm text-primary hover:text-blue-700 dark:hover:text-blue-300 font-medium">
+                        <a href="{{ route('admin.activities') }}" class="text-sm text-primary hover:text-emerald-700 dark:hover:text-emerald-300 font-medium">
                             View All
                         </a>
                     </div>
@@ -203,8 +203,8 @@
                             </div>
                         @empty
                             <div class="text-center py-8">
-                                <div class="p-4 rounded-full bg-blue-50 dark:bg-blue-900/30 inline-block mb-4">
-                                    <i class="fas fa-inbox text-3xl text-blue-500"></i>
+                                <div class="p-4 rounded-full bg-emerald-50 dark:bg-emerald-900/30 inline-block mb-4">
+                                    <i class="fas fa-inbox text-3xl text-emerald-500"></i>
                                 </div>
                                 <p class="text-gray-500 dark:text-gray-400">No recent activities</p>
                                 <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">Activities will appear here as they happen</p>
@@ -216,7 +216,7 @@
                 <!-- System Overview -->
                 <div class="space-y-6">
                     <!-- System Health -->
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+                    <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl rounded-2xl shadow-lg p-6 border border-white/30 dark:border-gray-700/30">
                         <h3 class="text-xl font-bold text-gray-800 dark:text-white flex items-center mb-6">
                             <i class="fas fa-heartbeat text-primary mr-3"></i>System Health
                         </h3>
@@ -252,7 +252,7 @@
                     </div>
 
                     <!-- Quick Stats -->
-                    <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl shadow-lg p-6 text-white">
+                    <div class="bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 rounded-2xl shadow-lg p-6 text-white">
                         <h3 class="text-xl font-bold mb-4">Today's Snapshot</h3>
                         <div class="grid grid-cols-2 gap-4">
                             <div class="text-center p-4 bg-white/15 rounded-xl hover:bg-white/25 transition-all duration-200 hover:scale-[1.02]">

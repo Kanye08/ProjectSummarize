@@ -16,34 +16,39 @@
         
         <!-- Tailwind CSS -->
         <script src="https://cdn.tailwindcss.com"></script>
-        
+        <script>
+            tailwind.config = {
+                darkMode: 'class',
+            }
+        </script>
+
         <style>
             * {
                 font-family: 'Figtree', sans-serif;
             }
-            
+
             .gradient-bg {
-                background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+                background: linear-gradient(135deg, #059669 0%, #0d9488 50%, #22d3ee 100%);
             }
-            
+
             .text-primary {
-                color: #0ea5e9;
+                color: #059669;
             }
-            
+
             .bg-primary {
-                background-color: #0ea5e9;
+                background-color: #059669;
             }
-            
+
             .hover\:bg-primary:hover {
-                background-color: #0284c7;
+                background-color: #047857;
             }
-            
+
             .border-primary {
-                border-color: #0ea5e9;
+                border-color: #059669;
             }
-            
+
             .focus\:ring-primary:focus {
-                --tw-ring-color: rgba(14, 165, 233, 0.5);
+                --tw-ring-color: rgba(5, 150, 105, 0.5);
             }
         </style>
         
@@ -51,16 +56,18 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="bg-gray-50">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center p-10 sm:pt-0 bg-gradient-to-br from-blue-50 to-gray-100">
+        <div class="min-h-screen flex flex-col sm:justify-center items-center p-10 sm:pt-0 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50">
             <div class="mb-8 mt-4 text-center">
                 <a href="/" class="flex items-center justify-center space-x-2">
-                    <i class="fas fa-video text-primary text-3xl"></i>
-                    <span class="text-2xl font-bold text-gray-800">SummarAIze</span>
+                    <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-600 to-cyan-600 flex items-center justify-center">
+                        <i class="fas fa-video text-white text-lg"></i>
+                    </div>
+                    <span class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-cyan-600">SummarAIze</span>
                 </a>
                 <p class="text-gray-600 mt-2">Smart Meeting Platform</p>
             </div>
 
-            <div class="w-full sm:max-w-xl px-6 py-8 bg-white shadow-xl rounded-2xl">
+            <div class="w-full sm:max-w-xl px-6 py-8 bg-white/80 backdrop-blur-xl shadow-2xl rounded-2xl border border-white/40">
                 {{ $slot }}
             </div>
             
