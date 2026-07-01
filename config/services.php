@@ -41,4 +41,11 @@ return [
         'api_key' => env('ASSEMBLYAI_API_KEY'),
     ],
 
+    'whatsapp' => [
+        'access_token'    => env('WHATSAPP_ACCESS_TOKEN'),
+        'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
+        'verify_token'    => env('WHATSAPP_VERIFY_TOKEN'),
+        'app_secret'      => env('WHATSAPP_APP_SECRET'),
+    ],
+
 ];

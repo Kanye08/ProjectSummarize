@@ -62,6 +62,10 @@ class AnalyzeMeetingSentiment implements ShouldQueue
             // Mark as COMPLETED - this is the final step!
             $this->meeting->update(['processing_status' => 'completed']);
 
+            if ($this->meeting->source === 'whatsapp' && $this->meeting->whatsapp_from) {
+                SendWhatsAppReply::dispatch($this->meeting->fresh());
+            }
+
             Log::info("=== ALL PROCESSING COMPLETE: Meeting {$this->meeting->id} ===");
 
         } catch (\Throwable $e) {
