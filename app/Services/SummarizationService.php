@@ -91,9 +91,16 @@ class SummarizationService
             ];
 
         } catch (\Exception $e) {
-            Log::error('Summarization failed: ' . $e->getMessage());
+            Log::error('Summarization failed (OpenAI): ' . $e->getMessage());
 
-            // Fallback: very simple local summary to avoid fully breaking the flow
+            // Try Claude as fallback
+            try {
+                return $this->summarizeWithClaude($transcriptText);
+            } catch (\Exception $claudeError) {
+                Log::error('Summarization fallback (Claude) also failed: ' . $claudeError->getMessage());
+            }
+
+            // Final fallback: basic text extraction
             $words   = preg_split('/\s+/', trim((string) $transcriptText));
             $preview = implode(' ', array_slice($words, 0, 60));
             $total   = is_array($words) ? count($words) : 0;
@@ -109,5 +116,52 @@ class SummarizationService
                 'participants_mentioned' => [],
             ];
         }
+    }
+
+    protected function summarizeWithClaude(string $transcriptText): array
+    {
+        Log::info('SummarizationService: falling back to Claude (Anthropic)');
+
+        $system = 'You are an assistant that summarizes meeting transcripts. '
+            . 'Always respond with a single JSON object and nothing else.';
+
+        $prompt = "You are given a meeting transcript.\n\n"
+            . "Respond ONLY with valid JSON (no markdown, no commentary) with the following exact structure:\n"
+            . "{\n"
+            . "  \"brief_summary\": string,\n"
+            . "  \"summary_text\": string,\n"
+            . "  \"action_points\": string[],\n"
+            . "  \"key_decisions\": string[],\n"
+            . "  \"key_topics\": string[],\n"
+            . "  \"participants_mentioned\": string[]\n"
+            . "}\n\n"
+            . "Transcript:\n"
+            . $transcriptText;
+
+        $content = app(AnthropicService::class)->complete($prompt, $system);
+        $content = trim($content);
+
+        $data = json_decode($content, true);
+
+        if (!is_array($data)) {
+            if (preg_match('/\{.*\}/s', $content, $matches)) {
+                $data = json_decode($matches[0], true);
+            }
+        }
+
+        if (!is_array($data)) {
+            throw new \Exception('Unable to decode JSON from Claude summarization response');
+        }
+
+        Log::info('SummarizationService: Claude fallback succeeded');
+
+        return [
+            'brief_summary'          => (string) ($data['brief_summary'] ?? 'Summary unavailable.'),
+            'summary_text'           => (string) ($data['summary_text'] ?? ''),
+            'action_points'          => array_values($data['action_points'] ?? []),
+            'key_decisions'          => array_values($data['key_decisions'] ?? []),
+            'key_topics'             => array_values($data['key_topics'] ?? []),
+            'participants_mentioned' => array_values($data['participants_mentioned'] ?? []),
+        ];
     }
 }

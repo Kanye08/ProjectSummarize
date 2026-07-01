@@ -41,6 +41,11 @@ return [
         'api_key' => env('ASSEMBLYAI_API_KEY'),
     ],
 
+    'anthropic' => [
+        'api_key' => env('ANTHROPIC_API_KEY'),
+        'model'   => env('ANTHROPIC_MODEL', 'claude-haiku-4-5'),
+    ],
+
     'whatsapp' => [
         'access_token'    => env('WHATSAPP_ACCESS_TOKEN'),
         'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),

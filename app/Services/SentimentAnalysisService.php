@@ -6,6 +6,7 @@ use OpenAI\Laravel\Facades\OpenAI;
 use Illuminate\Support\Facades\Log;
 
 class SentimentAnalysisService
+
 {
     public function analyze($transcriptSegments)
     {
@@ -116,9 +117,79 @@ class SentimentAnalysisService
             ];
 
         } catch (\Exception $e) {
-            Log::error('Sentiment analysis failed: ' . $e->getMessage());
+            Log::error('Sentiment analysis failed (OpenAI): ' . $e->getMessage());
+
+            // Try Claude as fallback
+            try {
+                return $this->analyzeWithClaude($allText);
+            } catch (\Exception $claudeError) {
+                Log::error('Sentiment fallback (Claude) also failed: ' . $claudeError->getMessage());
+            }
+
             return $this->defaultResult();
         }
+    }
+
+    protected function analyzeWithClaude(string $allText): array
+    {
+        Log::info('SentimentAnalysisService: falling back to Claude (Anthropic)');
+
+        $system = 'You are an assistant that performs sentiment analysis on meeting transcripts. '
+            . 'Always respond with a single JSON object and nothing else.';
+
+        $prompt = "Analyze the overall sentiment of the following meeting transcript.\n\n"
+            . "Respond ONLY with valid JSON (no markdown, no commentary) with the following exact structure:\n"
+            . "{\n"
+            . "  \"overall_sentiment\": \"positive\" | \"negative\" | \"neutral\" | \"mixed\",\n"
+            . "  \"positive_score\": number,\n"
+            . "  \"negative_score\": number,\n"
+            . "  \"neutral_score\": number,\n"
+            . "  \"sentiment_breakdown\": [{\"label\": string, \"score\": number}]\n"
+            . "}\n\n"
+            . "Ensure positive_score + negative_score + neutral_score is approximately 100.\n\n"
+            . "Transcript:\n"
+            . $allText;
+
+        $content = trim(app(AnthropicService::class)->complete($prompt, $system));
+
+        $data = json_decode($content, true);
+
+        if (!is_array($data)) {
+            if (preg_match('/\{.*\}/s', $content, $matches)) {
+                $data = json_decode($matches[0], true);
+            }
+        }
+
+        if (!is_array($data)) {
+            throw new \Exception('Unable to decode JSON from Claude sentiment response');
+        }
+
+        $overall   = (string) ($data['overall_sentiment'] ?? 'neutral');
+        $posScore  = (float)  ($data['positive_score'] ?? 50.0);
+        $negScore  = (float)  ($data['negative_score'] ?? 10.0);
+        $neutScore = (float)  ($data['neutral_score']  ?? 40.0);
+
+        $sum = $posScore + $negScore + $neutScore;
+        if ($sum > 0) {
+            $factor    = 100 / $sum;
+            $posScore  = round($posScore  * $factor, 1);
+            $negScore  = round($negScore  * $factor, 1);
+            $neutScore = round($neutScore * $factor, 1);
+        }
+
+        Log::info("Sentiment (Claude): {$overall} | Pos: {$posScore}% | Neg: {$negScore}% | Neu: {$neutScore}%");
+
+        return [
+            'overall_sentiment'   => $overall,
+            'positive_score'      => $posScore,
+            'negative_score'      => $negScore,
+            'neutral_score'       => $neutScore,
+            'sentiment_breakdown' => $data['sentiment_breakdown'] ?? [],
+            'chart_data'          => [
+                'labels' => ['Positive', 'Negative', 'Neutral'],
+                'values' => [$posScore, $negScore, $neutScore],
+            ],
+        ];
     }
 
     private function defaultResult(): array
